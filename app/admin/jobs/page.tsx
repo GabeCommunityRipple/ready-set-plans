@@ -49,9 +49,9 @@ export default function AdminJobsPage() {
 
       if (error) throw error
 
-      const jobsWithDrafters = data?.map(job => ({
+      const jobsWithDrafters = data?.map((job: Job & { profiles: { email: string }[] }) => ({
         ...job,
-        drafter_email: job.profiles?.email || null,
+        drafter_email: (job.profiles as any)?.email || null,
       })) || []
 
       setJobs(jobsWithDrafters)
