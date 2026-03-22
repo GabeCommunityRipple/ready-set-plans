@@ -1,6 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
+
+const planNames: Record<string, string> = {
+  deck: 'Deck Plans',
+  screen_porch: 'Screen Porch Plans',
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,13 +20,12 @@ export async function POST(request: NextRequest) {
       totalAmount,
     } = await request.json()
 
-    // Validate required fields
     if (!email || !jobName || !jobSiteAddress || !planType || !totalAmount) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Store order data temporarily (you might want to use a temp table or Redis)
-    // For now, we'll pass metadata to Stripe
+    const origin = new URL(request.url).origin
+
     const metadata = {
       email,
       businessName,
@@ -34,18 +37,29 @@ export async function POST(request: NextRequest) {
       fileUrls: JSON.stringify(fileUrls),
     }
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalAmount,
-      currency: 'usd',
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            unit_amount: totalAmount,
+            product_data: {
+              name: planNames[planType] || 'Plans',
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      customer_email: email,
       metadata,
-      automatic_payment_methods: {
-        enabled: true,
-      },
+      success_url: `${origin}/order/success`,
+      cancel_url: `${origin}/order`,
     })
 
-    return NextResponse.json({ client_secret: paymentIntent.client_secret })
+    return NextResponse.json({ url: session.url })
   } catch (error) {
-    console.error('Error creating payment intent:', error)
-    return NextResponse.json({ error: 'Failed to create payment intent' }, { status: 500 })
+    console.error('Error creating checkout session:', error)
+    return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 })
   }
 }

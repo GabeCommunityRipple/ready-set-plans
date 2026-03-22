@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { supabase } from '@/lib/supabase/client'
 
 export default function OrderPage() {
   const [loading, setLoading] = useState(false)
+  const [files, setFiles] = useState<File[]>([])
   const [formData, setFormData] = useState({
     email: '',
     businessName: '',
@@ -19,22 +21,42 @@ export default function OrderPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles(Array.from(e.target.files))
+    }
+  }
+
+  const uploadFiles = async (): Promise<string[]> => {
+    const urls: string[] = []
+    for (const file of files) {
+      const path = `temp/${Date.now()}-${file.name}`
+      const { error } = await supabase.storage.from('uploads').upload(path, file)
+      if (!error) {
+        const { data } = supabase.storage.from('uploads').getPublicUrl(path)
+        urls.push(data.publicUrl)
+      }
+    }
+    return urls
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     try {
+      const fileUrls = await uploadFiles()
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           totalAmount: prices[formData.planType] * 100,
-          fileUrls: [],
+          fileUrls,
         }),
       })
       const data = await response.json()
-      if (data.client_secret) {
-        window.location.href = '/order/success'
+      if (data.url) {
+        window.location.href = data.url
       } else {
         alert('Something went wrong. Please try again.')
       }
@@ -75,9 +97,27 @@ export default function OrderPage() {
                 <option value="screen_porch">Screen Porch Plans — $147</option>
               </select>
             </div>
-            <div style={{ marginBottom: '2rem' }}>
+            <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>Project Description *</label>
               <textarea name="description" required value={formData.description} onChange={handleChange} rows={4} style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', fontSize: '1rem', boxSizing: 'border-box', resize: 'vertical' }} placeholder="Describe your project..." />
+            </div>
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{ display: 'block', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>Reference Files</label>
+              <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.5rem' }}>Upload any sketches, photos, or site plans (images or PDFs)</p>
+              <input
+                type="file"
+                multiple
+                accept="image/*,.pdf"
+                onChange={handleFileChange}
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', fontSize: '1rem', boxSizing: 'border-box', backgroundColor: '#F9FAFB', cursor: 'pointer' }}
+              />
+              {files.length > 0 && (
+                <ul style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#374151', listStyle: 'none', padding: 0 }}>
+                  {files.map((f, i) => (
+                    <li key={i} style={{ padding: '0.25rem 0', borderBottom: '1px solid #F3F4F6' }}>📎 {f.name}</li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div style={{ backgroundColor: '#EFF6FF', borderRadius: '0.5rem', padding: '1rem', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontWeight: '600', color: '#1A56DB' }}>Total:</span>
