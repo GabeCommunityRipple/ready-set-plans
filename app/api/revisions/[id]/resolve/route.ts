@@ -4,9 +4,10 @@ import { sendEmail } from '@/lib/email'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = createClient()
     const { drafterNotes } = await request.json()
 
@@ -21,7 +22,7 @@ export async function POST(
           business_name
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (revisionError || !revision) {
@@ -36,7 +37,7 @@ export async function POST(
         drafter_notes: drafterNotes || null,
         resolved_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (updateError) {
       return NextResponse.json({ error: 'Failed to resolve revision' }, { status: 500 })

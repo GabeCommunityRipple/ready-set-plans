@@ -4,9 +4,10 @@ import { sendEmail } from '@/lib/email'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = createClient()
     const { status } = await request.json()
 
@@ -24,7 +25,7 @@ export async function PATCH(
           email
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (fetchError || !job) {
@@ -35,7 +36,7 @@ export async function PATCH(
     const { error: updateError } = await supabase
       .from('jobs')
       .update({ status })
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (updateError) {
       return NextResponse.json({ error: 'Failed to update job status' }, { status: 500 })
