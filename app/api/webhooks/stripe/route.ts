@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { sendOrderConfirmation, sendNewJobNotification } from '@/lib/email'
+import { sendEmail } from '@/lib/email'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
