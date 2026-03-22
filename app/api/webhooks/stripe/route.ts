@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { resend } from '@/lib/resend'
+import { sendOrderConfirmation, sendNewJobNotification } from '@/lib/email'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -69,18 +69,25 @@ export async function POST(request: NextRequest) {
           })
       }
 
-      // Send confirmation email
-      await resend.emails.send({
-        from: 'noreply@readysetplans.com',
-        to: metadata.email,
-        subject: 'Order Confirmation - Ready Set Plans',
-        html: `
-          <h1>Thank you for your order!</h1>
-          <p>Your ${metadata.planType} drafting job has been received and is being processed.</p>
-          <p>Job: ${metadata.jobName}</p>
-          <p>You'll receive updates as your plans are completed.</p>
-        `,
-      })
+      // Send order confirmation email to customer
+      await sendEmail(metadata.email, 'Order Confirmed - Ready Set Plans', `
+        <h1>Order Confirmed!</h1>
+        <p>Thank you for your order! Your plans for <strong>${metadata.jobName}</strong> are now being processed.</p>
+        <p>Plan Type: ${metadata.planType}</p>
+        <p>Amount Paid: $${(paymentIntent.amount / 100).toFixed(2)}</p>
+        <p>We'll start working on your plans within 48 hours.</p>
+        <a href="${process.env.NEXT_PUBLIC_APP_URL}/portal">View Your Order</a>
+      `)
+
+      // Send new job notification to admin
+      await sendEmail('hello@readysetplans.com', 'New Job Order Received', `
+        <h1>New Job Order Received</h1>
+        <p>A new job has been placed!</p>
+        <p>Job: ${metadata.jobName}</p>
+        <p>Customer: ${metadata.businessName || 'Customer'} (${metadata.email})</p>
+        <p>Plan Type: ${metadata.planType}</p>
+        <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/jobs/${job.id}">View Job Details</a>
+      `)
 
       // Send magic link for account access
       const { error: authError } = await supabase.auth.signInWithOtp({

@@ -77,26 +77,23 @@ export default function RevisionsPage() {
         uploadedFiles.push(`jobs/${job.id}/revisions/${fileName}`)
       }
 
-      // Create revision request
-      const { error: revisionError } = await supabase
-        .from('revision_requests')
-        .insert({
-          job_id: job.id,
-          request_text: requestText,
-        })
+      // Create revision request via API
+      const response = await fetch('/api/revisions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobId: job.id,
+          revisionNotes: requestText,
+        }),
+      })
 
-      if (revisionError) throw revisionError
+      if (!response.ok) {
+        throw new Error('Failed to create revision request')
+      }
 
-      // Update job status
-      const { error: updateError } = await supabase
-        .from('jobs')
-        .update({ status: 'revision_requested' })
-        .eq('id', job.id)
-
-      if (updateError) throw updateError
-
-      // TODO: Send email notification to drafter
-      // This would require additional setup for email templates and drafter assignment
+      router.push(`/portal/orders/${job.id}`)
 
       router.push(`/portal/orders/${job.id}`)
     } catch (err) {

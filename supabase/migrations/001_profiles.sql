@@ -21,9 +21,14 @@ CREATE POLICY "Users can update own profile" ON public.profiles
 -- Create function to handle new user
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  user_role TEXT;
 BEGIN
+  -- Check if user has a role specified in invite metadata
+  user_role := COALESCE(NEW.raw_user_meta_data->>'role', 'customer');
+
   INSERT INTO public.profiles (user_id, role)
-  VALUES (NEW.id, 'customer');
+  VALUES (NEW.id, user_role);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -44,6 +44,7 @@ export default function DrafterJobPage() {
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(false)
   const [delivering, setDelivering] = useState(false)
+  const [resolving, setResolving] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -135,19 +136,23 @@ export default function DrafterJobPage() {
       // draft upload keeps status as is
 
       if (newStatus !== job.status) {
-        const { error: statusError } = await supabase
-          .from('jobs')
-          .update({ status: newStatus })
-          .eq('id', job.id)
+        const response = await fetch(`/api/jobs/${job.id}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus }),
+        })
 
-        if (statusError) throw statusError
+        if (!response.ok) {
+          throw new Error('Failed to update job status')
+        }
+
         setJob({ ...job, status: newStatus })
       }
 
       // Refresh files
       await fetchJobDetails()
-
-      // TODO: Send email notification to customer
       alert(`${fileType.charAt(0).toUpperCase() + fileType.slice(1)} uploaded successfully!`)
     } catch (err) {
       alert('Failed to upload file. Please try again.')
@@ -161,12 +166,17 @@ export default function DrafterJobPage() {
 
     setDelivering(true)
     try {
-      const { error } = await supabase
-        .from('jobs')
-        .update({ status: 'delivered' })
-        .eq('id', job.id)
+      const response = await fetch(`/api/jobs/${job.id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'delivered' }),
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error('Failed to update job status')
+      }
 
       setJob({ ...job, status: 'delivered' })
       alert('Job marked as delivered!')
@@ -174,6 +184,31 @@ export default function DrafterJobPage() {
       alert('Failed to mark as delivered. Please try again.')
     } finally {
       setDelivering(false)
+    }
+  }
+
+  const resolveRevision = async (revisionId: string) => {
+    setResolving(true)
+    try {
+      const response = await fetch(`/api/revisions/${revisionId}/resolve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ drafterNotes: 'Revision completed' }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to resolve revision')
+      }
+
+      // Refresh revisions
+      await fetchJobDetails()
+      alert('Revision marked as resolved!')
+    } catch (err) {
+      alert('Failed to resolve revision. Please try again.')
+    } finally {
+      setResolving(false)
     }
   }
 
@@ -304,7 +339,19 @@ export default function DrafterJobPage() {
                   <p className="text-sm text-gray-600 mb-2">
                     {new Date(revision.created_at).toLocaleDateString()}
                   </p>
-                  <p>{revision.request_text}</p>
+                  <p className="mb-4">{revision.request_text}</p>
+                  {revision.status === 'pending' && (
+                    <button
+                      onClick={() => resolveRevision(revision.id)}
+                      disabled={resolving}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {resolving ? 'Resolving...' : 'Mark as Resolved'}
+                    </button>
+                  )}
+                  {revision.status === 'resolved' && (
+                    <span className="text-green-600 font-medium">Resolved</span>
+                  )}
                 </div>
               ))}
             </div>
