@@ -151,62 +151,133 @@ function OrderForm() {
   }, [formData.promoCode, formData.planType])
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">Order Drafting Service</h1>
+    <div style={{ maxWidth: '42rem', margin: '0 auto', padding: '1.5rem' }}>
+      <h1 style={{
+        fontSize: '1.875rem',
+        fontWeight: 'bold',
+        marginBottom: '2rem'
+      }}>
+        Order Drafting Service
+      </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div>
-          <label className="block text-sm font-medium mb-2">Email</label>
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            marginBottom: '0.5rem'
+          }}>
+            Email
+          </label>
           <input
             type="email"
             name="email"
             required
-            className="w-full p-2 border rounded"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              border: '1px solid #D1D5DB',
+              borderRadius: '0.25rem',
+              boxSizing: 'border-box'
+            }}
             value={formData.email}
             onChange={handleInputChange}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Business Name</label>
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            marginBottom: '0.5rem'
+          }}>
+            Business Name
+          </label>
           <input
             type="text"
             name="businessName"
-            className="w-full p-2 border rounded"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              border: '1px solid #D1D5DB',
+              borderRadius: '0.25rem',
+              boxSizing: 'border-box'
+            }}
             value={formData.businessName}
             onChange={handleInputChange}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Job Name</label>
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            marginBottom: '0.5rem'
+          }}>
+            Job Name
+          </label>
           <input
             type="text"
             name="jobName"
             required
-            className="w-full p-2 border rounded"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              border: '1px solid #D1D5DB',
+              borderRadius: '0.25rem',
+              boxSizing: 'border-box'
+            }}
             value={formData.jobName}
             onChange={handleInputChange}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Job Site Address</label>
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            marginBottom: '0.5rem'
+          }}>
+            Job Site Address
+          </label>
           <input
             type="text"
             name="jobSiteAddress"
             required
-            className="w-full p-2 border rounded"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              border: '1px solid #D1D5DB',
+              borderRadius: '0.25rem',
+              boxSizing: 'border-box'
+            }}
             value={formData.jobSiteAddress}
             onChange={handleInputChange}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Plan Type</label>
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            marginBottom: '0.5rem'
+          }}>
+            Plan Type
+          </label>
           <select
             name="planType"
-            className="w-full p-2 border rounded"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              border: '1px solid #D1D5DB',
+              borderRadius: '0.25rem',
+              boxSizing: 'border-box'
+            }}
             value={formData.planType}
             onChange={handleInputChange}
           >
@@ -216,67 +287,145 @@ function OrderForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Description</label>
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            marginBottom: '0.5rem'
+          }}>
+            Description
+          </label>
           <textarea
             name="description"
             rows={4}
-            className="w-full p-2 border rounded"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              border: '1px solid #D1D5DB',
+              borderRadius: '0.25rem',
+              boxSizing: 'border-box',
+              resize: 'vertical'
+            }}
             value={formData.description}
             onChange={handleInputChange}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Upload Files (Images/PDFs)</label>
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            marginBottom: '0.5rem'
+          }}>
+            Upload Files (Images/PDFs)
+          </label>
           <input
             type="file"
             multiple
             accept="image/*,.pdf"
             onChange={handleFileChange}
-            className="w-full p-2 border rounded"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              border: '1px solid #D1D5DB',
+              borderRadius: '0.25rem',
+              boxSizing: 'border-box'
+            }}
           />
           {fileUrls.length > 0 && (
-            <div className="mt-2 text-sm text-gray-600">
+            <div style={{
+              marginTop: '0.5rem',
+              fontSize: '0.875rem',
+              color: '#6B7280'
+            }}>
               {fileUrls.length} file(s) uploaded
             </div>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Promo Code</label>
-          <div className="flex gap-2">
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            marginBottom: '0.5rem'
+          }}>
+            Promo Code
+          </label>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             <input
               type="text"
               name="promoCode"
-              className="flex-1 p-2 border rounded"
+              style={{
+                flex: '1',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.25rem',
+                boxSizing: 'border-box'
+              }}
               value={formData.promoCode}
               onChange={handleInputChange}
             />
             <button
               type="button"
               onClick={validatePromo}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#3B82F6',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '0.25rem',
+                cursor: 'pointer'
+              }}
             >
               Apply
             </button>
           </div>
-          {promoError && <p className="text-red-500 text-sm mt-1">{promoError}</p>}
+          {promoError && (
+            <p style={{
+              color: '#EF4444',
+              fontSize: '0.875rem',
+              marginTop: '0.25rem'
+            }}>
+              {promoError}
+            </p>
+          )}
         </div>
 
-        <div className="bg-gray-50 p-4 rounded">
-          <h3 className="font-semibold mb-2">Order Summary</h3>
-          <div className="space-y-1">
-            <div className="flex justify-between">
+        <div style={{
+          backgroundColor: '#F9FAFB',
+          padding: '1rem',
+          borderRadius: '0.25rem'
+        }}>
+          <h3 style={{
+            fontWeight: '600',
+            marginBottom: '0.5rem'
+          }}>
+            Order Summary
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>{formData.planType === 'deck' ? 'Deck Plan' : 'Screen Porch Plan'}</span>
               <span>${(basePrice / 100).toFixed(2)}</span>
             </div>
             {promoDiscount > 0 && (
-              <div className="flex justify-between text-green-600">
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                color: '#059669'
+              }}>
                 <span>Discount</span>
                 <span>-${(promoDiscount / 100).toFixed(2)}</span>
               </div>
             )}
-            <div className="flex justify-between font-semibold border-t pt-1">
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontWeight: '600',
+              borderTop: '1px solid #D1D5DB',
+              paddingTop: '0.25rem'
+            }}>
               <span>Total</span>
               <span>${(totalAmount / 100).toFixed(2)}</span>
             </div>
@@ -284,14 +433,31 @@ function OrderForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Payment Information</label>
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            marginBottom: '0.5rem'
+          }}>
+            Payment Information
+          </label>
           <PaymentElement />
         </div>
 
         <button
           type="submit"
           disabled={!stripe || loading}
-          className="w-full py-3 bg-green-600 text-white rounded font-semibold disabled:opacity-50"
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            backgroundColor: loading || !stripe ? '#D1D5DB' : '#059669',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '0.25rem',
+            fontWeight: '600',
+            cursor: loading || !stripe ? 'not-allowed' : 'pointer',
+            opacity: loading || !stripe ? 0.5 : 1
+          }}
         >
           {loading ? 'Processing...' : `Pay $${(totalAmount / 100).toFixed(2)} & Submit Order`}
         </button>
