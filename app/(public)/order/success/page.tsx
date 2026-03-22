@@ -1,9 +1,9 @@
 'use client'
-
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-export default function OrderSuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams()
   const paymentIntent = searchParams.get('payment_intent')
   const [orderDetails, setOrderDetails] = useState<any>(null)
@@ -44,3 +44,14 @@ export default function OrderSuccessPage() {
     </div>
   )
 }
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SuccessContent />
+    </Suspense>
+  )
+}
+```
+
+Hit **Cmd+S** then run:
+```
