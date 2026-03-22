@@ -26,10 +26,14 @@ export default function OrderPage() {
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          totalAmount: prices[formData.planType] * 100,
+          fileUrls: [],
+        }),
       })
       const data = await response.json()
-      if (data.clientSecret) {
+      if (data.client_secret) {
         window.location.href = '/order/success'
       } else {
         alert('Something went wrong. Please try again.')
