@@ -18,25 +18,16 @@ function SuccessContent() {
   return (
     <div className="max-w-2xl mx-auto p-6 text-center">
       <h1 className="text-3xl font-bold text-green-600 mb-4">Order Successful!</h1>
-      <p className="text-lg mb-8">
-        Thank you for your order. We've received your payment and will begin working on your drafting plans.
-      </p>
+      <p className="text-lg mb-8">Thank you for your order. We will begin working on your plans within 48 hours.</p>
       {orderDetails && (
         <div className="bg-gray-50 p-6 rounded-lg text-left">
           <h2 className="font-semibold mb-4">Order Summary</h2>
           <p><strong>Payment ID:</strong> {orderDetails.paymentIntent}</p>
-          <p className="mt-4">
-            Check your email for a confirmation and a login link to track your order progress.
-          </p>
+          <p className="mt-4">Check your email for a confirmation and login link.</p>
         </div>
       )}
       <div className="mt-8">
-        
-          href="/"
-          className="inline-block px-6 py-3 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700"
-        >
-          Return Home
-        </a>
+        <a href="/" className="inline-block px-6 py-3 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700">Return Home</a>
       </div>
     </div>
   )
@@ -49,4 +40,3 @@ export default function SuccessPage() {
     </Suspense>
   )
 }
-```
