@@ -37,7 +37,7 @@ export default function AdminDraftersPage() {
 
       if (draftersError) throw draftersError
 
-      const draftersWithCounts = draftersData?.map(drafter => ({
+      const draftersWithCounts = draftersData?.map((drafter: any) => ({
         id: drafter.id,
         email: drafter.email,
         created_at: drafter.created_at,

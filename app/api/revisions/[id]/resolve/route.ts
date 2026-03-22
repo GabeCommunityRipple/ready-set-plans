@@ -8,7 +8,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const supabase = createClient()
+    const supabase = await createClient()
     const { drafterNotes } = await request.json()
 
     // Get revision details

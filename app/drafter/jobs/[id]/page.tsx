@@ -30,6 +30,7 @@ interface JobFile {
 interface RevisionRequest {
   id: string
   request_text: string
+  status: string
   created_at: string
 }
 

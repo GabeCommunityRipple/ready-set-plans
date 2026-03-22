@@ -4,7 +4,7 @@ import { sendEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { jobId, revisionNotes } = await request.json()
 
     if (!jobId || !revisionNotes) {

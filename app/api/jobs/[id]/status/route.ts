@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const supabase = createClient()
+    const supabase = await createClient()
     const { status } = await request.json()
 
     if (!status) {

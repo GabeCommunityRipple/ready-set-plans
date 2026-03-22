@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Send invite using Supabase Admin API
     const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {

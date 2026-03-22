@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const metadata = paymentIntent.metadata
 
     try {
-      const supabase = createClient()
+      const supabase = await createClient()
 
       // Create job record
       const { data: job, error: jobError } = await supabase

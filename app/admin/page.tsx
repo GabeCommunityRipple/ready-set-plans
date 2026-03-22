@@ -49,9 +49,9 @@ export default function AdminPage() {
 
       const jobs = jobsData || []
       const totalJobs = jobs.length
-      const totalRevenue = jobs.reduce((sum, job) => sum + job.total_amount, 0)
-      const openRevisions = jobs.filter(job => job.status === 'revision_requested').length
-      const unassignedJobs = jobs.filter(job => !job.drafter_id && job.status === 'pending').length
+      const totalRevenue = jobs.reduce((sum: number, job: Job) => sum + job.total_amount, 0)
+      const openRevisions = jobs.filter((job: Job) => job.status === 'revision_requested').length
+      const unassignedJobs = jobs.filter((job: Job) => !job.drafter_id && job.status === 'pending').length
 
       setStats({
         totalJobs,
