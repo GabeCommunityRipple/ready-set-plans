@@ -26,15 +26,23 @@ export default function AdminDraftersPage() {
     try {
       const { data: draftersData, error: draftersError } = await supabase
         .from('profiles')
-        .select('id, email, created_at')
+        .select('user_id, email, created_at')
         .eq('role', 'drafter')
 
-      if (draftersError) throw draftersError
+      if (draftersError) {
+        console.log('Supabase error fetching drafters:', draftersError)
+        throw draftersError
+      }
 
-      const { data: jobCounts } = await supabase
+      const { data: jobCounts, error: jobCountsError } = await supabase
         .from('jobs')
         .select('drafter_id')
         .not('drafter_id', 'is', null)
+
+      if (jobCountsError) {
+        console.log('Supabase error fetching job counts:', jobCountsError)
+        throw jobCountsError
+      }
 
       const countMap: Record<string, number> = {}
       for (const row of jobCounts || []) {
@@ -42,15 +50,17 @@ export default function AdminDraftersPage() {
       }
 
       const draftersWithCounts = draftersData?.map((drafter: any) => ({
-        id: drafter.id,
+        id: drafter.user_id,
         email: drafter.email,
         created_at: drafter.created_at,
-        jobCount: countMap[drafter.id] || 0,
+        jobCount: countMap[drafter.user_id] || 0,
       })) || []
 
       setDrafters(draftersWithCounts)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load drafters')
+    } catch (err: any) {
+      const message = err?.message || err?.details || JSON.stringify(err) || 'Failed to load drafters'
+      console.log('fetchDrafters error:', err)
+      setError(message)
     } finally {
       setLoading(false)
     }

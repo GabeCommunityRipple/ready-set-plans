@@ -55,11 +55,11 @@ export default function AdminJobsPage() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email')
+        .select('user_id, email')
         .eq('role', 'drafter')
 
       if (error) throw error
-      setDrafters(data || [])
+      setDrafters(data?.map((d: any) => ({ id: d.user_id, email: d.email })) || [])
     } catch (err) {
       console.error('Failed to load drafters:', err)
     }
