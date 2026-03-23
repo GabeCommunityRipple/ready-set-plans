@@ -40,31 +40,45 @@ export default function HomePage() {
 
       {/* Hero */}
       <style>{`
-        @keyframes drawHLines {
-          0%   { clip-path: inset(100% 0 0 0); opacity: 0; }
-          8%   { clip-path: inset(100% 0 0 0); opacity: 0; }
-          42%  { clip-path: inset(0% 0 0 0);   opacity: 0.3; }
-          58%  { opacity: 0.42; }
-          72%  { clip-path: inset(0% 0 0 0);   opacity: 0.25; }
-          84%  { clip-path: inset(0% 0 0 0);   opacity: 0; }
-          100% { clip-path: inset(100% 0 0 0); opacity: 0; }
+        /*
+         * revealSweep: the divider line sweeps top→bottom.
+         * 0%   → line at top (after fills 0%, before fills 100%)
+         * 60%  → line at bottom (after fills 100%, before fills 0%) — hold
+         * 75%  → still at bottom — pause before reset
+         * 76%  → instant snap back to top (invisible during snap)
+         * 100% → top again, ready to loop
+         */
+        @keyframes revealSweep {
+          0%        { top: 0%; }
+          60%       { top: 100%; }
+          75%       { top: 100%; }
+          75.001%   { top: 0%; }
+          100%      { top: 0%; }
         }
 
-        @keyframes drawVLines {
-          0%   { clip-path: inset(0 100% 0 0); opacity: 0; }
-          12%  { clip-path: inset(0 100% 0 0); opacity: 0; }
-          46%  { clip-path: inset(0 0% 0 0);   opacity: 0.3; }
-          60%  { opacity: 0.42; }
-          74%  { clip-path: inset(0 0% 0 0);   opacity: 0.25; }
-          86%  { clip-path: inset(0 0% 0 0);   opacity: 0; }
-          100% { clip-path: inset(0 100% 0 0); opacity: 0; }
+        /* the "after" clip grows downward as line descends */
+        @keyframes afterClip {
+          0%        { clip-path: inset(0 0 100% 0); }
+          60%       { clip-path: inset(0 0 0% 0); }
+          75%       { clip-path: inset(0 0 0% 0); }
+          75.001%   { clip-path: inset(0 0 100% 0); }
+          100%      { clip-path: inset(0 0 100% 0); }
         }
 
-        @keyframes scanDown {
-          0%   { transform: translateY(-4px); opacity: 0; }
-          8%   { opacity: 1; }
-          88%  { opacity: 0.7; }
-          100% { transform: translateY(800px); opacity: 0; }
+        /* labels fade in shortly after line passes */
+        @keyframes labelAfterFade {
+          0%      { opacity: 0; }
+          15%     { opacity: 1; }
+          58%     { opacity: 1; }
+          63%     { opacity: 0; }
+          100%    { opacity: 0; }
+        }
+        @keyframes labelBeforeFade {
+          0%      { opacity: 0; }
+          5%      { opacity: 1; }
+          58%     { opacity: 1; }
+          63%     { opacity: 0; }
+          100%    { opacity: 0; }
         }
 
         @media (max-width: 768px) {
@@ -130,50 +144,101 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Right — image + animated blueprint grid */}
+        {/* Right — before/after reveal */}
         <div className="hero-right" style={{
           width: '50%',
           position: 'relative',
           overflow: 'hidden',
+          backgroundColor: '#0F1929',
         }}>
+
+          {/* BEFORE — rough sketch, always visible underneath */}
           <Image
-            src="/hero-image.png"
-            alt="Deck blueprint plans"
+            src="/before-cad.png"
+            alt="Rough sketch"
             fill
             style={{ objectFit: 'cover' }}
             priority
           />
 
-          {/* Horizontal grid lines — draw in top → bottom */}
+          {/* AFTER — professional CAD, clipped to grow downward as line sweeps */}
           <div style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: 'repeating-linear-gradient(0deg, rgba(27,127,232,0.3) 0px, rgba(27,127,232,0.3) 1px, transparent 1px, transparent 40px)',
-            animation: 'drawHLines 8s ease-in-out infinite',
-            zIndex: 2,
-          }} />
+            animation: 'afterClip 4s ease-in-out infinite',
+            zIndex: 1,
+          }}>
+            <Image
+              src="/after-cad.png"
+              alt="Professional CAD plan"
+              fill
+              style={{ objectFit: 'cover' }}
+              priority
+            />
+          </div>
 
-          {/* Vertical grid lines — draw in left → right */}
+          {/* Sweep divider line */}
           <div style={{
             position: 'absolute',
-            inset: 0,
-            backgroundImage: 'repeating-linear-gradient(90deg, rgba(27,127,232,0.3) 0px, rgba(27,127,232,0.3) 1px, transparent 1px, transparent 40px)',
-            animation: 'drawVLines 8s ease-in-out infinite',
-            zIndex: 2,
-          }} />
-
-          {/* Scan line — sweeps down during the draw phase */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
             left: 0,
             right: 0,
-            height: '2px',
-            background: 'linear-gradient(90deg, transparent 0%, rgba(27,127,232,0.85) 25%, rgba(27,127,232,0.85) 75%, transparent 100%)',
-            boxShadow: '0 0 10px 3px rgba(27,127,232,0.45)',
-            animation: 'scanDown 8s linear infinite',
+            height: '3px',
+            background: 'linear-gradient(90deg, transparent 0%, #1B7FE8 15%, #1B7FE8 85%, transparent 100%)',
+            boxShadow: '0 0 14px 4px rgba(27,127,232,0.7), 0 0 30px 8px rgba(27,127,232,0.25)',
+            animation: 'revealSweep 4s ease-in-out infinite',
             zIndex: 3,
+          }}>
+            {/* "After" label — sits above the line */}
+            <div style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: '#1B7FE8',
+              color: '#ffffff',
+              fontSize: '0.7rem',
+              fontWeight: '700',
+              letterSpacing: '0.08em',
+              padding: '2px 10px',
+              borderRadius: '999px',
+              whiteSpace: 'nowrap',
+              animation: 'labelAfterFade 4s ease-in-out infinite',
+            }}>
+              AFTER
+            </div>
+            {/* "Before" label — sits below the line */}
+            <div style={{
+              position: 'absolute',
+              top: '10px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: 'rgba(15,25,41,0.75)',
+              color: '#94A3B8',
+              fontSize: '0.7rem',
+              fontWeight: '700',
+              letterSpacing: '0.08em',
+              padding: '2px 10px',
+              borderRadius: '999px',
+              border: '1px solid rgba(148,163,184,0.3)',
+              whiteSpace: 'nowrap',
+              animation: 'labelBeforeFade 4s ease-in-out infinite',
+            }}>
+              BEFORE
+            </div>
+          </div>
+
+          {/* Blueprint grid overlay — low opacity, always on top */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: [
+              'repeating-linear-gradient(0deg, rgba(27,127,232,0.1) 0px, rgba(27,127,232,0.1) 1px, transparent 1px, transparent 40px)',
+              'repeating-linear-gradient(90deg, rgba(27,127,232,0.1) 0px, rgba(27,127,232,0.1) 1px, transparent 1px, transparent 40px)',
+            ].join(', '),
+            zIndex: 4,
+            pointerEvents: 'none',
           }} />
+
         </div>
 
       </section>
