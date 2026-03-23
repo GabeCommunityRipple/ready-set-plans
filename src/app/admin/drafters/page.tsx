@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 interface Drafter {
@@ -24,41 +23,15 @@ export default function AdminDraftersPage() {
 
   const fetchDrafters = async () => {
     try {
-      const { data: draftersData, error: draftersError } = await supabase
-        .from('profiles')
-        .select('user_id, email, created_at')
-        .eq('role', 'drafter')
-
-      if (draftersError) {
-        console.log('Supabase error fetching drafters:', draftersError)
-        throw draftersError
+      const res = await fetch('/api/admin/drafters')
+      const data = await res.json()
+      if (!res.ok) {
+        console.log('fetchDrafters error:', data)
+        throw new Error(data.error || `HTTP ${res.status}`)
       }
-
-      const { data: jobCounts, error: jobCountsError } = await supabase
-        .from('jobs')
-        .select('drafter_id')
-        .not('drafter_id', 'is', null)
-
-      if (jobCountsError) {
-        console.log('Supabase error fetching job counts:', jobCountsError)
-        throw jobCountsError
-      }
-
-      const countMap: Record<string, number> = {}
-      for (const row of jobCounts || []) {
-        countMap[row.drafter_id] = (countMap[row.drafter_id] || 0) + 1
-      }
-
-      const draftersWithCounts = draftersData?.map((drafter: any) => ({
-        id: drafter.user_id,
-        email: drafter.email,
-        created_at: drafter.created_at,
-        jobCount: countMap[drafter.user_id] || 0,
-      })) || []
-
-      setDrafters(draftersWithCounts)
+      setDrafters(data)
     } catch (err: any) {
-      const message = err?.message || err?.details || JSON.stringify(err) || 'Failed to load drafters'
+      const message = err?.message || JSON.stringify(err) || 'Failed to load drafters'
       console.log('fetchDrafters error:', err)
       setError(message)
     } finally {
