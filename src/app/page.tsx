@@ -18,18 +18,24 @@ export default function HomePage() {
         top: 0,
         zIndex: 100,
       }}>
-        <Image src="/logo.png" alt="Ready Set Plans" height={60} width={180} style={{ objectFit: 'contain' }} />
-        <Link href="/order" style={{
-          backgroundColor: '#1B7FE8',
-          color: '#ffffff',
-          fontWeight: '600',
-          fontSize: '1rem',
-          padding: '0.625rem 1.5rem',
-          borderRadius: '0.5rem',
-          textDecoration: 'none',
-        }}>
-          Order Now
+        <Link href="/">
+          <Image src="/logo.png" alt="Ready Set Plans" height={60} width={180} style={{ objectFit: 'contain' }} />
         </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <Link href="/about" style={{ color: '#475569', textDecoration: 'none', fontWeight: '500', fontSize: '0.95rem' }}>About</Link>
+          <Link href="/contact" style={{ color: '#475569', textDecoration: 'none', fontWeight: '500', fontSize: '0.95rem' }}>Contact</Link>
+          <Link href="/order" style={{
+            backgroundColor: '#1B7FE8',
+            color: '#ffffff',
+            fontWeight: '600',
+            fontSize: '1rem',
+            padding: '0.625rem 1.5rem',
+            borderRadius: '0.5rem',
+            textDecoration: 'none',
+          }}>
+            Order Now
+          </Link>
+        </div>
       </nav>
 
       {/* Hero */}
@@ -114,6 +120,57 @@ export default function HomePage() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Mission / What We Do / Why Choose Us */}
+      <section style={{ backgroundColor: '#F1F5F9', padding: '5rem 2rem' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '2rem' }}>
+          {[
+            { title: 'OUR MISSION', body: 'To make professional building plans fast, simple, and affordable for contractors.' },
+            { title: 'WHAT WE DO', body: 'We create custom CAD drawings for decks, sheds, and home projects—delivered in 48 hours.' },
+            { title: 'WHY CHOOSE US', body: 'Reliable plans, budget-friendly pricing, and built for builders like you.' },
+          ].map((item) => (
+            <div key={item.title} style={{ textAlign: 'center', padding: '2rem 1.5rem' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: '800', letterSpacing: '0.1em', color: '#1B7FE8', marginBottom: '0.75rem', textTransform: 'uppercase' }}>{item.title}</div>
+              <p style={{ color: '#475569', lineHeight: 1.7, fontSize: '1rem', margin: 0 }}>{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Features */}
+      <section style={{ backgroundColor: '#0F1929', padding: '5rem 2rem', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0F1929 0%, #1A2E4A 100%)', opacity: 0.95 }} />
+        <div style={{ position: 'relative', maxWidth: '1000px', margin: '0 auto' }}>
+          <h2 style={{ fontSize: '2rem', fontWeight: '800', color: '#ffffff', textAlign: 'center', marginBottom: '0.75rem' }}>What to Expect</h2>
+          <p style={{ textAlign: 'center', color: '#94A3B8', marginBottom: '3.5rem', fontSize: '1.05rem' }}>We hold ourselves to the highest standard—every time.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '2rem' }}>
+            {[
+              { title: 'High Expectations', body: 'With us, you can expect incredibly high quality. Whatever you have in mind, we strive to exceed your highest expectations.' },
+              { title: 'Quality Control', body: "We take what you need seriously. You'll get professional plans that exceed your expectations." },
+              { title: 'Ongoing Feedback', body: 'Stay connected and receive ongoing updates about your plans throughout the entire process.' },
+              { title: 'Save on Costs', body: 'We keep our prices low so you can keep more of your money.' },
+            ].map((item) => (
+              <div key={item.title} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '0.75rem', padding: '1.75rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ width: '40px', height: '3px', backgroundColor: '#1B7FE8', borderRadius: '2px', marginBottom: '1rem' }} />
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#ffffff', marginBottom: '0.5rem' }}>{item.title}</h3>
+                <p style={{ color: '#94A3B8', lineHeight: 1.65, fontSize: '0.95rem', margin: 0 }}>{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Built by Builders */}
+      <section style={{ backgroundColor: '#ffffff', padding: '5rem 2rem' }}>
+        <div style={{ maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: '800', letterSpacing: '0.1em', color: '#1B7FE8', marginBottom: '1rem', textTransform: 'uppercase' }}>Our Story</div>
+          <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: '800', marginBottom: '1.5rem', lineHeight: 1.2 }}>Built for Contractors, By Contractors</h2>
+          <p style={{ color: '#475569', lineHeight: 1.8, fontSize: '1.05rem', margin: '0 0 2rem' }}>
+            At Ready Set Plans, we know exactly what you need—because we've been in your boots. As builders ourselves, we were constantly ordering plans for our own projects and got tired of the high costs, slow turnarounds, and complicated systems. That's why we created a service built for contractors, by contractors.
+          </p>
+          <Link href="/about" style={{ color: '#1B7FE8', fontWeight: '600', textDecoration: 'none', fontSize: '0.95rem' }}>Learn Our Story →</Link>
         </div>
       </section>
 
