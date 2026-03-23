@@ -39,36 +39,74 @@ export default function HomePage() {
       </nav>
 
       {/* Hero */}
-      <section style={{
-        backgroundColor: '#1A2332',
-        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(27,127,232,0.08) 39px, rgba(27,127,232,0.08) 40px), repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(27,127,232,0.08) 39px, rgba(27,127,232,0.08) 40px)',
-        padding: '6rem 2rem',
-        textAlign: 'center',
-      }}>
-        <div style={{ maxWidth: '780px', margin: '0 auto' }}>
+      <style>{`
+        @keyframes drawHLines {
+          0%   { clip-path: inset(100% 0 0 0); opacity: 0; }
+          8%   { clip-path: inset(100% 0 0 0); opacity: 0; }
+          42%  { clip-path: inset(0% 0 0 0);   opacity: 0.3; }
+          58%  { opacity: 0.42; }
+          72%  { clip-path: inset(0% 0 0 0);   opacity: 0.25; }
+          84%  { clip-path: inset(0% 0 0 0);   opacity: 0; }
+          100% { clip-path: inset(100% 0 0 0); opacity: 0; }
+        }
+
+        @keyframes drawVLines {
+          0%   { clip-path: inset(0 100% 0 0); opacity: 0; }
+          12%  { clip-path: inset(0 100% 0 0); opacity: 0; }
+          46%  { clip-path: inset(0 0% 0 0);   opacity: 0.3; }
+          60%  { opacity: 0.42; }
+          74%  { clip-path: inset(0 0% 0 0);   opacity: 0.25; }
+          86%  { clip-path: inset(0 0% 0 0);   opacity: 0; }
+          100% { clip-path: inset(0 100% 0 0); opacity: 0; }
+        }
+
+        @keyframes scanDown {
+          0%   { transform: translateY(-4px); opacity: 0; }
+          8%   { opacity: 1; }
+          88%  { opacity: 0.7; }
+          100% { transform: translateY(800px); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+          .hero-right { display: none !important; }
+          .hero-left  { width: 100% !important; padding: 4rem 1.5rem !important; }
+        }
+      `}</style>
+
+      <section style={{ display: 'flex', minHeight: '600px', overflow: 'hidden' }}>
+
+        {/* Left — content */}
+        <div className="hero-left" style={{
+          width: '50%',
+          backgroundColor: '#1A2332',
+          padding: '5rem 3.5rem 5rem 4rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        }}>
           <h1 style={{
-            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+            fontSize: 'clamp(1.75rem, 3vw, 3rem)',
             fontWeight: '800',
             color: '#ffffff',
             lineHeight: 1.15,
-            marginBottom: '1.25rem',
+            margin: '0 0 1.25rem',
           }}>
             Permit-Ready Deck Plans in 48 Hours
           </h1>
           <p style={{
-            fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
+            fontSize: 'clamp(1rem, 1.4vw, 1.15rem)',
             color: '#94A3B8',
-            marginBottom: '2.5rem',
-            lineHeight: 1.6,
+            lineHeight: 1.65,
+            margin: '0 0 2.5rem',
           }}>
             Fast, affordable drafting for deck builders. Submit a sketch, get professional plans.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <Link href="/order" style={{
               backgroundColor: '#1B7FE8',
               color: '#ffffff',
               fontWeight: '700',
-              fontSize: '1.125rem',
+              fontSize: '1.05rem',
               padding: '0.875rem 2rem',
               borderRadius: '0.5rem',
               textDecoration: 'none',
@@ -80,17 +118,64 @@ export default function HomePage() {
               backgroundColor: 'transparent',
               color: '#ffffff',
               fontWeight: '700',
-              fontSize: '1.125rem',
+              fontSize: '1.05rem',
               padding: '0.875rem 2rem',
               borderRadius: '0.5rem',
               textDecoration: 'none',
               display: 'inline-block',
-              border: '2px solid rgba(255,255,255,0.4)',
+              border: '2px solid rgba(255,255,255,0.35)',
             }}>
               See How It Works
             </a>
           </div>
         </div>
+
+        {/* Right — image + animated blueprint grid */}
+        <div className="hero-right" style={{
+          width: '50%',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          <Image
+            src="/hero-image.png"
+            alt="Deck blueprint plans"
+            fill
+            style={{ objectFit: 'cover' }}
+            priority
+          />
+
+          {/* Horizontal grid lines — draw in top → bottom */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'repeating-linear-gradient(0deg, rgba(27,127,232,0.3) 0px, rgba(27,127,232,0.3) 1px, transparent 1px, transparent 40px)',
+            animation: 'drawHLines 8s ease-in-out infinite',
+            zIndex: 2,
+          }} />
+
+          {/* Vertical grid lines — draw in left → right */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'repeating-linear-gradient(90deg, rgba(27,127,232,0.3) 0px, rgba(27,127,232,0.3) 1px, transparent 1px, transparent 40px)',
+            animation: 'drawVLines 8s ease-in-out infinite',
+            zIndex: 2,
+          }} />
+
+          {/* Scan line — sweeps down during the draw phase */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '2px',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(27,127,232,0.85) 25%, rgba(27,127,232,0.85) 75%, transparent 100%)',
+            boxShadow: '0 0 10px 3px rgba(27,127,232,0.45)',
+            animation: 'scanDown 8s linear infinite',
+            zIndex: 3,
+          }} />
+        </div>
+
       </section>
 
       {/* Stats bar */}
