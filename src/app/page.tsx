@@ -87,7 +87,7 @@ export default function HomePage() {
         }
       `}</style>
 
-      <section style={{ display: 'flex', minHeight: '600px', overflow: 'hidden' }}>
+      <section style={{ display: 'flex', height: '600px', overflow: 'hidden' }}>
 
         {/* Left — content */}
         <div className="hero-left" style={{
@@ -153,12 +153,20 @@ export default function HomePage() {
         }}>
 
           {/* BEFORE — rough sketch, always visible underneath */}
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/before-cad.png"
             alt="Rough sketch"
-            fill
-            style={{ objectFit: 'cover' }}
-            priority
+            width={800}
+            height={600}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              zIndex: 0,
+            }}
           />
 
           {/* AFTER — professional CAD, clipped to grow downward as line sweeps */}
@@ -168,12 +176,19 @@ export default function HomePage() {
             animation: 'afterClip 4s ease-in-out infinite',
             zIndex: 1,
           }}>
-            <Image
-              src="/after-cad.png"
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/hero-image.png"
               alt="Professional CAD plan"
-              fill
-              style={{ objectFit: 'cover' }}
-              priority
+              width={800}
+              height={600}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
             />
           </div>
 
