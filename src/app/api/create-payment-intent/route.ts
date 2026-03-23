@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 
 const planNames: Record<string, string> = {
@@ -59,7 +60,19 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
-    console.error('Error creating checkout session:', error)
+    if (error instanceof Stripe.errors.StripeError) {
+      console.error('Stripe error creating checkout session:', {
+        message: error.message,
+        type: error.type,
+        code: error.code,
+        statusCode: error.statusCode,
+        raw: error.raw,
+      })
+    } else if (error instanceof Error) {
+      console.error('Error creating checkout session:', error.message, error.stack)
+    } else {
+      console.error('Unknown error creating checkout session:', error)
+    }
     return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 })
   }
 }
