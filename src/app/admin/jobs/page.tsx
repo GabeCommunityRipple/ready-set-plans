@@ -14,7 +14,6 @@ interface Job {
   total_amount: number
   created_at: string
   drafter_id: string | null
-  drafter_email?: string
 }
 
 interface Drafter {
@@ -37,24 +36,14 @@ export default function AdminJobsPage() {
 
   const fetchJobs = async () => {
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('jobs')
-        .select(`
-          id, job_name, customer_email, business_name, plan_type, status, total_amount, created_at, drafter_id,
-          profiles!jobs_drafter_id_fkey(email)
-        `)
+        .select('id, job_name, customer_email, business_name, plan_type, status, total_amount, created_at, drafter_id')
         .order('created_at', { ascending: false })
-
-      const { data, error } = await query
 
       if (error) throw error
 
-      const jobsWithDrafters = data?.map((job: Job & { profiles: { email: string }[] }) => ({
-        ...job,
-        drafter_email: (job.profiles as any)?.email || null,
-      })) || []
-
-      setJobs(jobsWithDrafters)
+      setJobs(data || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load jobs')
     } finally {
@@ -204,7 +193,7 @@ export default function AdminJobsPage() {
                         {job.plan_type === 'deck' ? 'Deck' : 'Screen Porch'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {job.drafter_email || 'Unassigned'}
+                        {drafters.find(d => d.id === job.drafter_id)?.email || 'Unassigned'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[job.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}`}>

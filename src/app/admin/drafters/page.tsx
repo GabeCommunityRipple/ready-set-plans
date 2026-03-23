@@ -24,24 +24,28 @@ export default function AdminDraftersPage() {
 
   const fetchDrafters = async () => {
     try {
-      // Get drafters with job counts
       const { data: draftersData, error: draftersError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          email,
-          created_at,
-          jobs!jobs_drafter_id_fkey(count)
-        `)
+        .select('id, email, created_at')
         .eq('role', 'drafter')
 
       if (draftersError) throw draftersError
+
+      const { data: jobCounts } = await supabase
+        .from('jobs')
+        .select('drafter_id')
+        .not('drafter_id', 'is', null)
+
+      const countMap: Record<string, number> = {}
+      for (const row of jobCounts || []) {
+        countMap[row.drafter_id] = (countMap[row.drafter_id] || 0) + 1
+      }
 
       const draftersWithCounts = draftersData?.map((drafter: any) => ({
         id: drafter.id,
         email: drafter.email,
         created_at: drafter.created_at,
-        jobCount: drafter.jobs?.[0]?.count || 0,
+        jobCount: countMap[drafter.id] || 0,
       })) || []
 
       setDrafters(draftersWithCounts)

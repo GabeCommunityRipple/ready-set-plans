@@ -56,9 +56,11 @@ export default function AdminPromoCodesPage() {
     setCreating(true)
     try {
       const promoData = {
-        code: formData.code.toUpperCase(),
+        code: formData.code,
         discount_type: formData.discount_type,
-        discount_value: formData.discount_value,
+        discount_value: formData.discount_type === 'fixed'
+          ? formData.discount_value * 100
+          : formData.discount_value,
         valid_until: formData.valid_until || null,
         is_active: true,
         // Note: applies_to and max_uses would need to be added to the database schema
@@ -163,7 +165,7 @@ export default function AdminPromoCodesPage() {
                 <input
                   type="text"
                   value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -255,7 +257,7 @@ export default function AdminPromoCodesPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {promo.discount_type === 'percent'
                           ? `${promo.discount_value}% off`
-                          : `$${promo.discount_value / 100} off`
+                          : `$${(promo.discount_value / 100).toFixed(2)} off`
                         }
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
