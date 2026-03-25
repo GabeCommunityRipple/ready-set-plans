@@ -78,23 +78,21 @@ export default function DrafterPage() {
   const claimJob = async (jobId: string) => {
     setClaiming(jobId)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      const res = await fetch('/api/drafter/claim-job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId }),
+      })
 
-      const { error } = await supabase
-        .from('jobs')
-        .update({
-          drafter_id: user.id,
-          status: 'in_progress'
-        })
-        .eq('id', jobId)
+      if (!res.ok) {
+        const json = await res.json()
+        throw new Error(json.error || 'Failed to claim job')
+      }
 
-      if (error) throw error
-
-      // Refresh jobs
       await fetchJobs()
     } catch (err) {
-      alert('Failed to claim job. Please try again.')
+      console.error('Failed to claim job:', err)
+      alert(err instanceof Error ? err.message : 'Failed to claim job. Please try again.')
     } finally {
       setClaiming(null)
     }
