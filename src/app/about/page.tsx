@@ -165,7 +165,8 @@ export default function AboutPage() {
         padding: '3rem 2rem',
         textAlign: 'center',
       }}>
-        <Image src="/logo.png" alt="Ready Set Plans" height={50} width={150} style={{ objectFit: 'contain', marginBottom: '1.5rem' }} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-white.png" alt="Ready Set Plans" style={{ height: '60px', width: 'auto', objectFit: 'contain' }} />
         <div style={{ display: 'flex', gap: '2rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
           <a href="tel:5014047526" style={{ color: '#94A3B8', textDecoration: 'none' }}>501-404-7526</a>
           <a href="mailto:info@readysetplans.com" style={{ color: '#94A3B8', textDecoration: 'none' }}>info@readysetplans.com</a>
