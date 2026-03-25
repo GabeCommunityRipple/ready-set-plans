@@ -56,21 +56,25 @@ export default function AdminPromoCodesPage() {
     setCreating(true)
     try {
       const promoData = {
-        code: formData.code,
+        code: formData.code.toUpperCase(),
         discount_type: formData.discount_type,
         discount_value: formData.discount_type === 'fixed'
           ? formData.discount_value * 100
           : formData.discount_value,
         valid_until: formData.valid_until || null,
         is_active: true,
-        // Note: applies_to and max_uses would need to be added to the database schema
       }
 
-      const { error } = await supabase
-        .from('promo_codes')
-        .insert(promoData)
+      const res = await fetch('/api/admin/promo-codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(promoData),
+      })
 
-      if (error) throw error
+      if (!res.ok) {
+        const json = await res.json()
+        throw new Error(json.error || 'Failed to create promo code')
+      }
 
       setShowForm(false)
       setFormData({
@@ -83,7 +87,8 @@ export default function AdminPromoCodesPage() {
       })
       fetchPromoCodes()
     } catch (err) {
-      alert('Failed to create promo code. Please try again.')
+      console.error('Failed to create promo code:', err)
+      alert(err instanceof Error ? err.message : 'Failed to create promo code. Please try again.')
     } finally {
       setCreating(false)
     }
