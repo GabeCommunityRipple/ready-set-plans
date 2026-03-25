@@ -19,7 +19,8 @@ export default function AboutPage() {
         zIndex: 100,
       }}>
         <Link href="/">
-          <Image src="/logo.png" alt="Ready Set Plans" height={60} width={180} style={{ objectFit: 'contain' }} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Ready Set Plans" style={{ height: '60px', width: 'auto', objectFit: 'contain' }} />
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <Link href="/about" style={{ color: '#1B7FE8', textDecoration: 'none', fontWeight: '600', fontSize: '0.95rem' }}>About</Link>
