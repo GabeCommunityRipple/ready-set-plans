@@ -53,7 +53,7 @@ export default function AdminDraftersPage() {
 
       const data = await response.json()
       if (response.ok) {
-        alert(data.message || 'Drafter added successfully')
+        alert(`Drafter account created!\n\nEmail: ${inviteEmail}\nTemporary password: ${data.tempPassword}\n\nShare these credentials with the drafter and ask them to change their password.`)
         setInviteEmail('')
         fetchDrafters() // Refresh the list
       } else {
