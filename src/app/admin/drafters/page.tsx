@@ -53,7 +53,7 @@ export default function AdminDraftersPage() {
 
       const data = await response.json()
       if (response.ok) {
-        alert('Invitation sent successfully!')
+        alert(data.message || 'Drafter added successfully')
         setInviteEmail('')
         fetchDrafters() // Refresh the list
       } else {
