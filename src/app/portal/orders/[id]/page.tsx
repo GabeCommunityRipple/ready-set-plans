@@ -16,6 +16,8 @@ interface Job {
   total_amount: number
   created_at: string
   customer_id: string
+  missing_items: string[] | null
+  ai_message: string | null
 }
 
 interface JobFile {
@@ -39,6 +41,7 @@ const statusSteps = [
 ]
 
 const statusColors = {
+  needs_info: 'bg-amber-100 text-amber-800',
   pending: 'bg-gray-100 text-gray-800',
   in_progress: 'bg-blue-100 text-blue-800',
   revision_requested: 'bg-yellow-100 text-yellow-800',
@@ -55,6 +58,9 @@ export default function OrderDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [approving, setApproving] = useState(false)
+  const [additionalInfo, setAdditionalInfo] = useState('')
+  const [submittingInfo, setSubmittingInfo] = useState(false)
+  const [infoSubmitResult, setInfoSubmitResult] = useState<{ message: string; stillMissing?: string[] } | null>(null)
 
   useEffect(() => {
     if (params.id) {
@@ -102,6 +108,37 @@ export default function OrderDetailsPage() {
       setError(err instanceof Error ? err.message : 'Failed to load order details')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSubmitInfo = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!job || !additionalInfo.trim()) return
+
+    setSubmittingInfo(true)
+    setInfoSubmitResult(null)
+    try {
+      const res = await fetch('/api/portal/submit-info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: job.id, additionalInfo }),
+      })
+      const data = await res.json()
+
+      if (data.status === 'pending') {
+        setJob({ ...job, status: 'pending', missing_items: [], ai_message: null })
+        setInfoSubmitResult({ message: data.message })
+        setAdditionalInfo('')
+      } else {
+        // Still needs info
+        setJob({ ...job, missing_items: data.missing_items, ai_message: data.message })
+        setInfoSubmitResult({ message: data.message, stillMissing: data.missing_items })
+        setAdditionalInfo('')
+      }
+    } catch {
+      setInfoSubmitResult({ message: 'Failed to submit. Please try again.' })
+    } finally {
+      setSubmittingInfo(false)
     }
   }
 
@@ -182,6 +219,59 @@ export default function OrderDetailsPage() {
             </span>
           </div>
         </div>
+
+        {/* Needs Info Banner */}
+        {job.status === 'needs_info' && (
+          <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-6 mb-8">
+            <div className="flex items-start gap-3 mb-4">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <h2 className="text-xl font-bold text-amber-900">Additional Information Required</h2>
+                <p className="text-amber-800 mt-1">
+                  {job.ai_message ?? 'We need more details before we can begin drafting your plans.'}
+                </p>
+              </div>
+            </div>
+
+            {job.missing_items && job.missing_items.length > 0 && (
+              <div className="mb-5">
+                <p className="font-semibold text-amber-900 mb-2">Missing information:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  {job.missing_items.map((item, i) => (
+                    <li key={i} className="text-amber-800">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {infoSubmitResult && (
+              <div className={`mb-4 p-3 rounded text-sm font-medium ${infoSubmitResult.stillMissing ? 'bg-amber-100 text-amber-900' : 'bg-green-100 text-green-800'}`}>
+                {infoSubmitResult.message}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitInfo} className="space-y-3">
+              <label className="block font-semibold text-amber-900">
+                Provide the missing details:
+              </label>
+              <textarea
+                value={additionalInfo}
+                onChange={(e) => setAdditionalInfo(e.target.value)}
+                rows={5}
+                placeholder="e.g. Deck dimensions: 16x20 ft, height off ground: 3 ft, 6x6 posts, attached to house via ledger board, composite decking..."
+                className="w-full px-3 py-2 border border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                required
+              />
+              <button
+                type="submit"
+                disabled={submittingInfo || !additionalInfo.trim()}
+                className="px-6 py-2 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 disabled:opacity-50"
+              >
+                {submittingInfo ? 'Checking...' : 'Submit Additional Information'}
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Status Timeline */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
