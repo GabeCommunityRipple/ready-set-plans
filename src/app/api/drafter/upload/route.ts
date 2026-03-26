@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         job_id: jobId,
         file_name: file.name,
         file_path: filePath,
-        file_type: 'drafter_upload',
+        file_type: 'final',
       })
 
     if (dbError) {

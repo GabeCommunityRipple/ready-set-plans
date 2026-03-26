@@ -79,7 +79,7 @@ export default function DrafterJobPage() {
       if (filesError) throw filesError
 
       const customerUploads = filesData?.filter(f => f.file_type === 'customer_upload') || []
-      const drafterUploads = filesData?.filter(f => f.file_type === 'drafter_upload') || []
+      const drafterUploads = filesData?.filter(f => ['draft', 'revision', 'final'].includes(f.file_type)) || []
 
       setCustomerFiles(customerUploads)
       setDrafterFiles(drafterUploads)
