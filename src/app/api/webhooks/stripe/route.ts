@@ -97,7 +97,10 @@ export async function POST(request: NextRequest) {
       }
 
       // Handle file uploads
-      const fileUrls = JSON.parse(metadata.fileUrls || '[]')
+      const fileUrls = Object.keys(metadata)
+  .filter(k => k.startsWith('fileUrl'))
+  .sort()
+  .map(k => metadata[k])
       console.log('[stripe-webhook] File URLs to process:', fileUrls.length)
       for (const url of fileUrls) {
         try {
