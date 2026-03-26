@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const { data: promo, error } = await supabaseAdmin
       .from('promo_codes')
       .select('*')
-      .ilike('code', code)
+      .eq('code', code.toUpperCase())
       .eq('is_active', true)
       .or(`valid_until.is.null,valid_until.gt.${new Date().toISOString()}`)
       .single()

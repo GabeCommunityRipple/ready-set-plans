@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email'
 
@@ -8,11 +8,10 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const supabase = await createClient()
     const { drafterNotes } = await request.json()
 
     // Get revision details
-    const { data: revision, error: revisionError } = await supabase
+    const { data: revision, error: revisionError } = await supabaseAdmin
       .from('revision_requests')
       .select(`
         *,
@@ -30,7 +29,7 @@ export async function POST(
     }
 
     // Update revision status
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from('revision_requests')
       .update({
         status: 'resolved',

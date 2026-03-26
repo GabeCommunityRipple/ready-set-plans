@@ -19,12 +19,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'jobId and additionalInfo are required' }, { status: 400 })
     }
 
-    // Verify the user owns this job
-    const { data: job, error: jobError } = await supabase
+    // Verify the user owns this job by matching customer_email
+    const { data: job, error: jobError } = await supabaseAdmin
       .from('jobs')
       .select('id, job_name, plan_type, description, job_site_address, customer_email, status')
       .eq('id', jobId)
-      .eq('customer_id', user.id)
+      .eq('customer_email', user.email)
       .single()
 
     if (jobError || !job) {

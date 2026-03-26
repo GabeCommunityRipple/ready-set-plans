@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the caller is a drafter
-    const { data: profile } = await supabase
+    const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('role')
       .eq('user_id', user.id)

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email'
 
@@ -8,7 +8,6 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const supabase = await createClient()
     const { status } = await request.json()
 
     if (!status) {
@@ -16,15 +15,9 @@ export async function PATCH(
     }
 
     // Get current job details
-    const { data: job, error: fetchError } = await supabase
+    const { data: job, error: fetchError } = await supabaseAdmin
       .from('jobs')
-      .select(`
-        *,
-        profiles:user_id (
-          full_name,
-          email
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single()
 
@@ -33,7 +26,7 @@ export async function PATCH(
     }
 
     // Update job status
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from('jobs')
       .update({ status })
       .eq('id', id)
@@ -46,8 +39,7 @@ export async function PATCH(
     const customerEmail = job.customer_email
 
     if (status === 'in_progress') {
-      // Get drafter info
-      const { data: drafterProfile } = await supabase
+      const { data: drafterProfile } = await supabaseAdmin
         .from('profiles')
         .select('full_name')
         .eq('user_id', job.drafter_id)

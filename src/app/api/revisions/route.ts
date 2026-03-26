@@ -1,10 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
     const { jobId, revisionNotes } = await request.json()
 
     if (!jobId || !revisionNotes) {
@@ -12,15 +11,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get job details
-    const { data: job, error: jobError } = await supabase
+    const { data: job, error: jobError } = await supabaseAdmin
       .from('jobs')
-      .select(`
-        *,
-        profiles:user_id (
-          full_name,
-          email
-        )
-      `)
+      .select('id, job_name, customer_email, drafter_id')
       .eq('id', jobId)
       .single()
 
@@ -29,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create revision request
-    const { data: revision, error: revisionError } = await supabase
+    const { data: revision, error: revisionError } = await supabaseAdmin
       .from('revision_requests')
       .insert({
         job_id: jobId,
@@ -45,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Send email to drafter
     if (job.drafter_id) {
-      const { data: drafterProfile } = await supabase
+      const { data: drafterProfile } = await supabaseAdmin
         .from('profiles')
         .select('email')
         .eq('user_id', job.drafter_id)
