@@ -31,10 +31,11 @@ export async function GET(request: NextRequest) {
     .eq('user_id', user.id)
     .single()
 
+  const role = profile?.role ?? 'customer'
   let redirectTo = '/portal'
-  if (profile?.role === 'admin') {
+  if (role === 'admin') {
     redirectTo = '/admin'
-  } else if (profile?.role === 'drafter') {
+  } else if (role === 'drafter') {
     redirectTo = '/drafter'
   }
 
