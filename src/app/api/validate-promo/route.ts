@@ -24,10 +24,10 @@ export async function POST(request: NextRequest) {
 
     let discountAmount = 0
     if (promo.discount_type === 'fixed') {
-      discountAmount = promo.discount_value
+      discountAmount = Number(promo.discount_value) / 100
     } else if (promo.discount_type === 'percent') {
       const basePrice = planType === 'deck' ? 97 : 147
-      discountAmount = Math.round((basePrice * promo.discount_value) / 100)
+      discountAmount = Math.round((basePrice * Number(promo.discount_value)) / 100)
     }
 
     return NextResponse.json({
