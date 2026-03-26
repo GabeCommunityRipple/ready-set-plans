@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
+import DashboardNav from '@/components/DashboardNav'
 
 interface Job {
   id: string
@@ -33,6 +34,7 @@ export default function PortalPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [userEmail, setUserEmail] = useState('')
 
   useEffect(() => {
     fetchJobs()
@@ -42,6 +44,7 @@ export default function PortalPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
+      setUserEmail(user.email || '')
 
       const { data, error } = await supabase
         .from('jobs')
@@ -76,6 +79,7 @@ export default function PortalPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <DashboardNav email={userEmail} />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>

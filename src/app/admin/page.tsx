@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
+import DashboardNav from '@/components/DashboardNav'
 
 interface Job {
   id: string
@@ -33,6 +34,7 @@ export default function AdminPage() {
   const [recentJobs, setRecentJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [userEmail, setUserEmail] = useState('')
 
   useEffect(() => {
     fetchDashboardData()
@@ -40,6 +42,9 @@ export default function AdminPage() {
 
   const fetchDashboardData = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) setUserEmail(user.email || '')
+
       // Fetch stats
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
@@ -103,6 +108,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <DashboardNav email={userEmail} />
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
+import DashboardNav from '@/components/DashboardNav'
 
 interface Job {
   id: string
@@ -37,6 +38,7 @@ export default function DrafterPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [claiming, setClaiming] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState('')
 
   useEffect(() => {
     fetchJobs()
@@ -46,6 +48,7 @@ export default function DrafterPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
+      setUserEmail(user.email || '')
 
       // Fetch available jobs (paid but no drafter assigned)
       const { data: availableData, error: availableError } = await supabase
@@ -116,6 +119,7 @@ export default function DrafterPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <DashboardNav email={userEmail} />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Drafter Dashboard</h1>
