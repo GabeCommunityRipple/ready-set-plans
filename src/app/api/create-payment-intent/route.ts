@@ -29,13 +29,13 @@ export async function POST(request: NextRequest) {
 
     const metadata = {
       email,
-      businessName,
-      jobName,
-      jobSiteAddress,
+      businessName: businessName ? businessName.substring(0, 490) : '',
+      jobName: jobName ? jobName.substring(0, 490) : '',
+      jobSiteAddress: jobSiteAddress ? jobSiteAddress.substring(0, 490) : '',
       planType,
-      description,
+      description: description ? description.substring(0, 490) : '',
       promoCode: promoCode || '',
-      fileUrls: JSON.stringify(fileUrls),
+      fileUrls: JSON.stringify(fileUrls).substring(0, 490),
     }
 
     const session = await stripe.checkout.sessions.create({
