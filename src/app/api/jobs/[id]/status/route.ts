@@ -12,6 +12,7 @@ export async function PATCH(
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
+      console.error('Status update error: unauthenticated request')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -21,7 +22,10 @@ export async function PATCH(
       .eq('user_id', user.id)
       .single()
 
-    if (profile?.role !== 'drafter') {
+    console.log('Status update: profile lookup', { userId: user.id, role: profile?.role })
+
+    if (profile?.role !== 'drafter' && profile?.role !== 'admin') {
+      console.error('Status update error: user is not a drafter or admin', { userId: user.id, role: profile?.role })
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -29,6 +33,7 @@ export async function PATCH(
     const { status: jobStatus } = await request.json()
 
     if (!jobStatus) {
+      console.error('Status update error: missing status in request body')
       return NextResponse.json({ error: 'Status is required' }, { status: 400 })
     }
 
@@ -40,6 +45,7 @@ export async function PATCH(
       .single()
 
     if (fetchError || !job) {
+      console.error('Status update error: job not found', { jobId: id, fetchError })
       return NextResponse.json({ error: 'Job not found' }, { status: 404 })
     }
 
@@ -50,6 +56,7 @@ export async function PATCH(
       .eq('id', id)
 
     if (updateError) {
+      console.error('Status update error: db update failed', updateError)
       return NextResponse.json({ error: 'Failed to update job status' }, { status: 500 })
     }
 

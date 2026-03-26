@@ -138,7 +138,11 @@ export default function DrafterJobPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'delivered' }),
       })
-      if (!res.ok) throw new Error('Failed')
+      if (!res.ok) {
+        const text = await res.text()
+        console.error('Deliver failed:', res.status, text)
+        throw new Error('Failed')
+      }
       router.refresh()
     } catch {
       alert('Failed to mark as delivered. Please try again.')
