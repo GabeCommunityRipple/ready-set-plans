@@ -114,15 +114,20 @@ export async function POST(request: NextRequest) {
             continue
           }
 
-          await supabase
+          const { error: dbError } = await supabase
             .from('job_files')
             .insert({
               job_id: job.id,
               file_name: fileName,
               file_path: `jobs/${job.id}/uploads/${fileName}`,
+              file_type: 'customer_upload',
             })
 
-          console.log('[stripe-webhook] File uploaded:', fileName)
+          if (dbError) {
+            console.error('[stripe-webhook] Error inserting job_files record:', fileName, dbError)
+          } else {
+            console.log('[stripe-webhook] File record inserted:', fileName)
+          }
         } catch (fileError) {
           console.error('[stripe-webhook] Error processing file:', url, fileError)
         }
