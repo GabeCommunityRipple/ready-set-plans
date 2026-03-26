@@ -26,26 +26,22 @@ export async function POST(request: NextRequest) {
       .from('revision_requests')
       .insert({
         job_id: jobId,
-        customer_notes: revisionNotes,
-        status: 'pending',
+        request_text: revisionNotes,
       })
       .select()
       .single()
 
     if (revisionError) {
+      console.error('Failed to create revision request:', revisionError)
       return NextResponse.json({ error: 'Failed to create revision request' }, { status: 500 })
     }
 
     // Send email to drafter
     if (job.drafter_id) {
-      const { data: drafterProfile } = await supabaseAdmin
-        .from('profiles')
-        .select('email')
-        .eq('user_id', job.drafter_id)
-        .single()
+      const { data: drafterUser } = await supabaseAdmin.auth.admin.getUserById(job.drafter_id)
 
-      if (drafterProfile?.email) {
-        await sendEmail(drafterProfile.email, 'Revision Requested', `
+      if (drafterUser.user?.email) {
+        await sendEmail(drafterUser.user.email, 'Revision Requested', `
           <h1>Revision Requested</h1>
           <p>A customer has requested revisions for the job ${job.job_name}.</p>
           <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0;">
