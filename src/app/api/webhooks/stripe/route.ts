@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { sendEmail } from '@/lib/email'
@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const supabase = await createClient()
-      console.log('[stripe-webhook] Supabase client created')
+      const supabase = supabaseAdmin
+      console.log('[stripe-webhook] Supabase admin client ready')
 
       // Create job record
       const insertPayload = {
