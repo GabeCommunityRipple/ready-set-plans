@@ -58,9 +58,11 @@ export default function OrderPage() {
       if (data.url) {
         window.location.href = data.url
       } else {
+        console.error('Order API error response:', { status: response.status, data })
         alert('Something went wrong. Please try again.')
       }
-    } catch {
+    } catch (err) {
+      console.error('Order submit exception:', err)
       alert('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
@@ -107,7 +109,7 @@ export default function OrderPage() {
               <input
                 type="file"
                 multiple
-                accept="image/*,.pdf"
+                accept="image/*,.pdf,.dwg,.dxf,.doc,.docx,.png,.jpg,.jpeg"
                 onChange={handleFileChange}
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', fontSize: '1rem', boxSizing: 'border-box', backgroundColor: '#F9FAFB', cursor: 'pointer' }}
               />

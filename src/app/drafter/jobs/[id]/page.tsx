@@ -371,7 +371,7 @@ export default function DrafterJobPage() {
                 </label>
                 <input
                   type="file"
-                  accept=".pdf"
+                  accept="image/*,.pdf,.dwg,.dxf,.png,.jpg,.jpeg"
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) uploadFile(file, 'revision')
@@ -389,7 +389,7 @@ export default function DrafterJobPage() {
                 </label>
                 <input
                   type="file"
-                  accept=".pdf"
+                  accept="image/*,.pdf,.dwg,.dxf,.png,.jpg,.jpeg"
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) uploadFile(file, 'draft')
@@ -405,7 +405,7 @@ export default function DrafterJobPage() {
                 </label>
                 <input
                   type="file"
-                  accept=".pdf"
+                  accept="image/*,.pdf,.dwg,.dxf,.png,.jpg,.jpeg"
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) uploadFile(file, 'final')
