@@ -9,7 +9,7 @@ export async function sendEmail(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const result = await resend.emails.send({
-      from: 'Ready Set Plans <noreply@ready-set-plans.com>',
+      from: 'Ready Set Plans <info@readysetplans.com>',
       to: [to],
       subject,
       html,
