@@ -130,26 +130,17 @@ export default function DrafterJobPage() {
     }
   }
 
-  const markAsDelivered = async () => {
-    if (!job) return
-
+  const handleDeliver = async () => {
     setDelivering(true)
     try {
-      const response = await fetch(`/api/jobs/${job.id}/status`, {
+      const res = await fetch(`/api/jobs/${params.id}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'delivered' }),
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to update job status')
-      }
-
-      setJob({ ...job, status: 'delivered' })
-      alert('Job marked as delivered!')
-    } catch (err) {
+      if (!res.ok) throw new Error('Failed')
+      router.refresh()
+    } catch {
       alert('Failed to mark as delivered. Please try again.')
     } finally {
       setDelivering(false)
@@ -355,7 +346,7 @@ export default function DrafterJobPage() {
           <div style={{ background: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', padding: '1.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>Actions</h2>
             <button
-              onClick={markAsDelivered}
+              onClick={handleDeliver}
               disabled={delivering}
               style={{ padding: '0.75rem 1.5rem', background: delivering ? '#86efac' : '#16a34a', color: '#fff', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: delivering ? 'not-allowed' : 'pointer', opacity: delivering ? 0.7 : 1 }}
             >
