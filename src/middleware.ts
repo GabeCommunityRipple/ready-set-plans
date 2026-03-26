@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
     pathname === '/login' ||
     pathname === '/auth/callback' ||
     pathname.startsWith('/order') ||
-    pathname.startsWith('/api/validate-promo')
+    pathname.startsWith('/api/')
 
   if (isPublicRoute) {
     return supabaseResponse
