@@ -70,40 +70,16 @@ export default function OrderDetailsPage() {
 
   const fetchOrderDetails = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
-      // Fetch job
-      const { data: jobData, error: jobError } = await supabase
-        .from('jobs')
-        .select('*')
-        .eq('id', params.id)
-        .eq('customer_email', user.email)
-        .single()
-
-      if (jobError) throw jobError
-      setJob(jobData)
-
-      // Fetch files
-      const { data: filesData, error: filesError } = await supabase
-        .from('job_files')
-        .select('*')
-        .eq('job_id', params.id)
-        .order('uploaded_at', { ascending: true })
-
-      if (filesError) throw filesError
-      setFiles(filesData || [])
-
-      // Fetch revisions
-      const { data: revisionsData, error: revisionsError } = await supabase
-        .from('revision_requests')
-        .select('*')
-        .eq('job_id', params.id)
-        .order('created_at', { ascending: true })
-
-      if (revisionsError) throw revisionsError
-      setRevisions(revisionsData || [])
-
+      const res = await fetch(`/api/portal/orders/${params.id}`)
+      if (!res.ok) {
+        const text = await res.text()
+        console.error('fetchOrderDetails failed:', res.status, text)
+        throw new Error('Failed to load job.')
+      }
+      const data = await res.json()
+      setJob(data.job)
+      setFiles(data.files)
+      setRevisions(data.revisions)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load order details')
     } finally {
@@ -147,13 +123,12 @@ export default function OrderDetailsPage() {
 
     setApproving(true)
     try {
-      const { error } = await supabase
-        .from('jobs')
-        .update({ status: 'approved' })
-        .eq('id', job.id)
-
-      if (error) throw error
-
+      const res = await fetch(`/api/portal/orders/${job.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' }),
+      })
+      if (!res.ok) throw new Error('Failed to approve')
       setJob({ ...job, status: 'approved' })
     } catch (err) {
       alert('Failed to approve plans. Please try again.')
