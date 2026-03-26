@@ -65,12 +65,17 @@ export default function OrderPage() {
     const urls: string[] = []
     for (const file of files) {
       const path = `temp/${Date.now()}-${file.name}`
+      console.log('[order] Uploading file to storage:', path)
       const { error } = await supabase.storage.from('uploads').upload(path, file)
-      if (!error) {
+      if (error) {
+        console.error('[order] File upload failed:', file.name, error)
+      } else {
         const { data } = supabase.storage.from('uploads').getPublicUrl(path)
+        console.log('[order] File uploaded, public URL:', data.publicUrl)
         urls.push(data.publicUrl)
       }
     }
+    console.log('[order] Upload complete. URLs collected:', urls.length)
     return urls
   }
 
