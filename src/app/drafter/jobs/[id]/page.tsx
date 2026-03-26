@@ -79,7 +79,7 @@ export default function DrafterJobPage() {
       if (filesError) throw filesError
 
       const customerUploads = filesData?.filter(f => f.file_type === 'customer_upload') || []
-      const drafterUploads = filesData?.filter(f => ['draft', 'revision', 'final'].includes(f.file_type)) || []
+      const drafterUploads = filesData?.filter(f => f.file_type === 'drafter_upload') || []
 
       setCustomerFiles(customerUploads)
       setDrafterFiles(drafterUploads)
@@ -101,62 +101,30 @@ export default function DrafterJobPage() {
     }
   }
 
-  const uploadFile = async (file: File, fileType: string) => {
+  const uploadFile = async (file: File) => {
     if (!job) return
 
     setUploading(true)
     try {
-      const fileName = `${fileType}-${Date.now()}-${file.name}`
-      const filePath = `jobs/${job.id}/uploads/${fileName}`
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('jobId', job.id)
 
-      const { error: uploadError } = await supabase.storage
-        .from('uploads')
-        .upload(filePath, file)
+      const res = await fetch('/api/drafter/upload', {
+        method: 'POST',
+        body: formData,
+      })
 
-      if (uploadError) throw uploadError
-
-      // Record file in database
-      const { error: dbError } = await supabase
-        .from('job_files')
-        .insert({
-          job_id: job.id,
-          file_name: file.name,
-          file_path: filePath,
-          file_type: fileType,
-        })
-
-      if (dbError) throw dbError
-
-      // Update job status based on file type
-      let newStatus = job.status
-      if (fileType === 'revision') {
-        newStatus = 'delivered'
-      } else if (fileType === 'final') {
-        newStatus = 'delivered'
-      }
-      // draft upload keeps status as is
-
-      if (newStatus !== job.status) {
-        const response = await fetch(`/api/jobs/${job.id}/status`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ status: newStatus }),
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to update job status')
-        }
-
-        setJob({ ...job, status: newStatus })
+      if (!res.ok) {
+        const json = await res.json()
+        throw new Error(json.error || 'Upload failed')
       }
 
-      // Refresh files
       await fetchJobDetails()
-      alert(`${fileType.charAt(0).toUpperCase() + fileType.slice(1)} uploaded successfully!`)
+      alert('File uploaded successfully!')
     } catch (err) {
-      alert('Failed to upload file. Please try again.')
+      console.error('Failed to upload file:', err)
+      alert(err instanceof Error ? err.message : 'Failed to upload file. Please try again.')
     } finally {
       setUploading(false)
     }
@@ -360,70 +328,30 @@ export default function DrafterJobPage() {
         )}
 
         {/* Upload Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Upload Files</h2>
-
-          {job.status === 'revision_requested' ? (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Revision
-                </label>
-                <input
-                  type="file"
-                  accept="image/*,.pdf,.dwg,.dxf,.png,.jpg,.jpeg"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) uploadFile(file, 'revision')
-                  }}
-                  disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Draft PDF
-                </label>
-                <input
-                  type="file"
-                  accept="image/*,.pdf,.dwg,.dxf,.png,.jpg,.jpeg"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) uploadFile(file, 'draft')
-                  }}
-                  disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Final Plans
-                </label>
-                <input
-                  type="file"
-                  accept="image/*,.pdf,.dwg,.dxf,.png,.jpg,.jpeg"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) uploadFile(file, 'final')
-                  }}
-                  disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          )}
-
+        <div style={{ background: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', padding: '1.5rem', marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>Upload Files</h2>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+              {job.status === 'revision_requested' ? 'Upload Revision' : 'Upload Plans'}
+            </label>
+            <input
+              type="file"
+              accept="image/*,.pdf,.dwg,.dxf,.png,.jpg,.jpeg"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) uploadFile(file)
+              }}
+              disabled={uploading}
+              style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem', boxSizing: 'border-box', opacity: uploading ? 0.5 : 1 }}
+            />
+          </div>
           {uploading && (
-            <p className="text-blue-600 mt-2">Uploading...</p>
+            <p style={{ color: '#2563eb', marginTop: '0.5rem', fontSize: '0.875rem' }}>Uploading...</p>
           )}
         </div>
 
         {/* Actions */}
-        {drafterFiles.some(f => f.file_type === 'final') && job.status !== 'delivered' && (
+        {drafterFiles.length > 0 && job.status !== 'delivered' && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold mb-4">Actions</h2>
             <button
