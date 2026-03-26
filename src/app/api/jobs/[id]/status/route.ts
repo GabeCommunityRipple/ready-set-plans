@@ -26,9 +26,9 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const { status } = await request.json()
+    const { status: jobStatus } = await request.json()
 
-    if (!status) {
+    if (!jobStatus) {
       return NextResponse.json({ error: 'Status is required' }, { status: 400 })
     }
 
@@ -46,7 +46,7 @@ export async function PATCH(
     // Update job status
     const { error: updateError } = await supabaseAdmin
       .from('jobs')
-      .update({ status })
+      .update({ status: jobStatus })
       .eq('id', id)
 
     if (updateError) {
@@ -56,7 +56,7 @@ export async function PATCH(
     // Send appropriate email based on new status
     const customerEmail = job.customer_email
 
-    if (status === 'in_progress') {
+    if (jobStatus === 'in_progress') {
       const { data: drafterProfile } = await supabaseAdmin
         .from('profiles')
         .select('full_name')
@@ -71,7 +71,7 @@ export async function PATCH(
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/portal">View Your Order</a>
         `)
       }
-    } else if (status === 'delivered') {
+    } else if (jobStatus === 'delivered') {
       await sendEmail(customerEmail, 'Your Plans Are Ready to Review', `
         <h1>Your Plans Are Ready to Review</h1>
         <p>Great news! Your draft plans for ${job.job_name} are now ready for your review.</p>
