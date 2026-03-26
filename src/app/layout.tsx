@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     description: 'Upload your project details and get permit-ready deck or screen porch plans delivered in 48 hours. Starting at $97.',
     url: 'https://readysetplans.com',
     siteName: 'Ready Set Plans',
-    images: [{ url: 'https://readysetplans.com/logo.png' }],
+    images: [{ url: 'https://readysetplans.com/og-image.png' }],
   },
   twitter: {
     card: "summary_large_image",
