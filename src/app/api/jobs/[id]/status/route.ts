@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email'
 
@@ -7,6 +8,23 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+
+    if (profile?.role !== 'drafter') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const { id } = await params
     const { status } = await request.json()
 
@@ -58,7 +76,7 @@ export async function PATCH(
         <h1>Your Plans Are Ready to Review</h1>
         <p>Great news! Your draft plans for ${job.job_name} are now ready for your review.</p>
         <p>Please log in to your customer portal to view the draft, provide feedback, or request revisions.</p>
-        <a href="${process.env.NEXT_PUBLIC_APP_URL}/portal">Review Your Plans</a>
+        <a href="${process.env.NEXT_PUBLIC_APP_URL}/portal/orders/${id}">Review Your Plans</a>
       `)
     }
 

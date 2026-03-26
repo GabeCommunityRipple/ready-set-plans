@@ -352,14 +352,14 @@ export default function DrafterJobPage() {
 
         {/* Actions */}
         {drafterFiles.length > 0 && job.status !== 'delivered' && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-4">Actions</h2>
+          <div style={{ background: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', padding: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>Actions</h2>
             <button
               onClick={markAsDelivered}
               disabled={delivering}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50"
+              style={{ padding: '0.75rem 1.5rem', background: delivering ? '#86efac' : '#16a34a', color: '#fff', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: delivering ? 'not-allowed' : 'pointer', opacity: delivering ? 0.7 : 1 }}
             >
-              {delivering ? 'Marking as Delivered...' : 'Mark as Delivered'}
+              {delivering ? 'Sending...' : 'Send Plans to Customer'}
             </button>
           </div>
         )}
