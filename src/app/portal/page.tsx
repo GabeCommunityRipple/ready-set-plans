@@ -49,7 +49,7 @@ export default function PortalPage() {
       const { data, error } = await supabase
         .from('jobs')
         .select('id, job_name, plan_type, status, created_at, total_amount')
-        .eq('customer_id', user.id)
+        .eq('customer_email', user.email)
         .order('created_at', { ascending: false })
 
       if (error) throw error

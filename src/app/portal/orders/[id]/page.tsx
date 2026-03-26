@@ -15,7 +15,7 @@ interface Job {
   status: string
   total_amount: number
   created_at: string
-  customer_id: string
+  customer_email: string
   missing_items: string[] | null
   ai_message: string | null
 }
@@ -78,7 +78,7 @@ export default function OrderDetailsPage() {
         .from('jobs')
         .select('*')
         .eq('id', params.id)
-        .eq('customer_id', user.id)
+        .eq('customer_email', user.email)
         .single()
 
       if (jobError) throw jobError
