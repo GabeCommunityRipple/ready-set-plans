@@ -96,44 +96,48 @@ export async function POST(request: NextRequest) {
         console.error('[stripe-webhook] AI job check failed, defaulting to pending:', aiError)
       }
 
-      // Handle file uploads
-      const fileUrls = Object.keys(metadata)
-  .filter(k => k.startsWith('fileUrl'))
-  .sort()
-  .map(k => metadata[k])
-      console.log('[stripe-webhook] File URLs to process:', fileUrls.length)
-      for (const url of fileUrls) {
-        try {
-          const response = await fetch(url)
-          const blob = await response.blob()
-          const fileName = url.split('/').pop()!
+      // Handle file uploads — list temp folder and move each file server-side
+      const tempPrefix = metadata.tempPrefix
+      if (tempPrefix) {
+        const { data: tempFiles, error: listError } = await supabaseAdmin.storage
+          .from('uploads')
+          .list(`temp/${tempPrefix}`)
 
-          const { error: uploadError } = await supabase.storage
-            .from('uploads')
-            .upload(`jobs/${job.id}/uploads/${fileName}`, blob)
+        if (listError) {
+          console.error('[stripe-webhook] Error listing temp files:', listError)
+        } else {
+          console.log('[stripe-webhook] Temp files to move:', tempFiles?.length ?? 0)
+          for (const file of (tempFiles ?? [])) {
+            const fromPath = `temp/${tempPrefix}/${file.name}`
+            const toPath = `jobs/${job.id}/uploads/${file.name}`
 
-          if (uploadError) {
-            console.error('[stripe-webhook] Error uploading file:', fileName, uploadError)
-            continue
+            const { error: moveError } = await supabaseAdmin.storage
+              .from('uploads')
+              .move(fromPath, toPath)
+
+            if (moveError) {
+              console.error('[stripe-webhook] Error moving file:', fromPath, moveError)
+              continue
+            }
+
+            const { error: dbError } = await supabaseAdmin
+              .from('job_files')
+              .insert({
+                job_id: job.id,
+                file_name: file.name,
+                file_path: toPath,
+                file_type: 'customer_upload',
+              })
+
+            if (dbError) {
+              console.error('[stripe-webhook] Error inserting job_files record:', file.name, dbError)
+            } else {
+              console.log('[stripe-webhook] File moved and recorded:', file.name)
+            }
           }
-
-          const { error: dbError } = await supabase
-            .from('job_files')
-            .insert({
-              job_id: job.id,
-              file_name: fileName,
-              file_path: `jobs/${job.id}/uploads/${fileName}`,
-              file_type: 'customer_upload',
-            })
-
-          if (dbError) {
-            console.error('[stripe-webhook] Error inserting job_files record:', fileName, dbError)
-          } else {
-            console.log('[stripe-webhook] File record inserted:', fileName)
-          }
-        } catch (fileError) {
-          console.error('[stripe-webhook] Error processing file:', url, fileError)
         }
+      } else {
+        console.log('[stripe-webhook] No tempPrefix in metadata, no files to move')
       }
 
       if (aiStatus === 'needs_info') {

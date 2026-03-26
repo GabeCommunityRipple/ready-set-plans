@@ -61,29 +61,27 @@ export default function OrderPage() {
     }
   }
 
-  const uploadFiles = async (): Promise<string[]> => {
-    const urls: string[] = []
+  const uploadFiles = async (): Promise<string> => {
+    const tempPrefix = Date.now().toString()
     for (const file of files) {
-      const path = `temp/${Date.now()}-${file.name}`
+      const path = `temp/${tempPrefix}/${file.name}`
       console.log('[order] Uploading file to storage:', path)
       const { error } = await supabase.storage.from('uploads').upload(path, file)
       if (error) {
         console.error('[order] File upload failed:', file.name, error)
       } else {
-        const { data } = supabase.storage.from('uploads').getPublicUrl(path)
-        console.log('[order] File uploaded, public URL:', data.publicUrl)
-        urls.push(data.publicUrl)
+        console.log('[order] File uploaded:', path)
       }
     }
-    console.log('[order] Upload complete. URLs collected:', urls.length)
-    return urls
+    console.log('[order] Upload complete. tempPrefix:', tempPrefix)
+    return tempPrefix
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     try {
-      const fileUrls = await uploadFiles()
+      const tempPrefix = files.length > 0 ? await uploadFiles() : ''
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,7 +89,7 @@ export default function OrderPage() {
           ...formData,
           promoCode: promoResult?.valid ? promoCode.trim() : '',
           totalAmount: finalPrice * 100,
-          fileUrls,
+          tempPrefix,
         }),
       })
       const data = await response.json()

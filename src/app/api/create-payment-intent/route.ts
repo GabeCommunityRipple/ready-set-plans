@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       planType,
       description,
       promoCode,
-      fileUrls,
+      tempPrefix,
       totalAmount,
     } = await request.json()
 
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       planType,
       description: description ? description.substring(0, 490) : '',
       promoCode: promoCode || '',
-      ...Object.fromEntries((fileUrls as string[]).map((url: string, i: number) => [`fileUrl${i}`, url])),
+      tempPrefix: tempPrefix || '',
     }
 
     const session = await stripe.checkout.sessions.create({
