@@ -79,6 +79,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create revision request' }, { status: 500 })
     }
 
+    await supabaseAdmin
+      .from('jobs')
+      .update({ status: 'revision_requested' })
+      .eq('id', jobId)
+
     // Send email to drafter
     if (job.drafter_id) {
       const { data: drafterUser } = await supabaseAdmin.auth.admin.getUserById(job.drafter_id)
