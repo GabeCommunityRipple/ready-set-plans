@@ -2,7 +2,6 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { sendEmail } from '@/lib/email'
-import { analyzeJobCompleteness } from '@/lib/ai-job-check'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -67,35 +66,6 @@ export async function POST(request: NextRequest) {
 
       console.log('[stripe-webhook] Job created successfully. ID:', job.id)
 
-      // Run AI completeness check
-      let aiStatus: 'pending' | 'needs_info' = 'pending'
-      try {
-        console.log('[stripe-webhook] Running AI completeness check...')
-        const aiResult = await analyzeJobCompleteness({
-          job_name: metadata.jobName,
-          plan_type: metadata.planType,
-          description: metadata.description,
-          job_site_address: metadata.jobSiteAddress,
-        })
-        console.log('[stripe-webhook] AI check result:', JSON.stringify(aiResult))
-
-        if (!aiResult.complete) {
-          aiStatus = 'needs_info'
-          await supabase
-            .from('jobs')
-            .update({
-              status: 'needs_info',
-              missing_items: aiResult.missing_items,
-              ai_message: aiResult.message,
-            })
-            .eq('id', job.id)
-          console.log('[stripe-webhook] Job updated to needs_info')
-        }
-      } catch (aiError) {
-        // Non-fatal: log and continue — job stays 'pending' if AI check fails
-        console.error('[stripe-webhook] AI job check failed, defaulting to pending:', aiError)
-      }
-
       // Handle file uploads — list temp folder and move each file server-side
       const tempPrefix = metadata.tempPrefix
       if (tempPrefix) {
@@ -140,28 +110,7 @@ export async function POST(request: NextRequest) {
         console.log('[stripe-webhook] No tempPrefix in metadata, no files to move')
       }
 
-      if (aiStatus === 'needs_info') {
-        const { data: jobWithAI } = await supabase
-          .from('jobs')
-          .select('missing_items, ai_message')
-          .eq('id', job.id)
-          .single()
-
-        const missingList = (jobWithAI?.missing_items ?? [])
-          .map((item: string) => `<li>${item}</li>`)
-          .join('')
-
-        await sendEmail(metadata.email, 'Action Required: Additional Info Needed - Ready Set Plans', `
-          <h1>We Need a Bit More Info</h1>
-          <p>Thank you for your order for <strong>${metadata.jobName}</strong>! Payment received: $${((session.amount_total ?? 0) / 100).toFixed(2)}.</p>
-          <p>To create your permit-ready plans we need a few more details:</p>
-          <ul>${missingList}</ul>
-          <p>${jobWithAI?.ai_message ?? ''}</p>
-          <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/portal/orders/${job.id}">Log in to provide the missing information &rarr;</a></p>
-        `)
-        console.log('[stripe-webhook] needs_info email sent to:', metadata.email)
-      } else {
-        await sendEmail(metadata.email, 'Order Confirmed - Ready Set Plans', `
+      await sendEmail(metadata.email, 'Order Confirmed - Ready Set Plans', `
           <h1>Order Confirmed!</h1>
           <p>Thank you for your order! Your plans for <strong>${metadata.jobName}</strong> are now being processed.</p>
           <p>Plan Type: ${metadata.planType}</p>
@@ -170,7 +119,7 @@ export async function POST(request: NextRequest) {
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/portal">View Your Order</a>
         `)
 
-        await sendEmail('hello@readysetplans.com', 'New Job Order Received', `
+      await sendEmail('hello@readysetplans.com', 'New Job Order Received', `
           <h1>New Job Order Received</h1>
           <p>A new job has been placed!</p>
           <p>Job: ${metadata.jobName}</p>
@@ -179,8 +128,7 @@ export async function POST(request: NextRequest) {
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/jobs/${job.id}">View Job Details</a>
         `)
 
-        console.log('[stripe-webhook] Confirmation emails sent')
-      }
+      console.log('[stripe-webhook] Confirmation emails sent')
 
       // Generate magic link and create customer profile
       console.log('[stripe-webhook] Generating magic link for:', metadata.email)
