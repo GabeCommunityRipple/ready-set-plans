@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { sendEmail } from '@/lib/email'
 import { NextRequest, NextResponse } from 'next/server'
 
 const TEMP_PASSWORD = 'ChangeMe123!'
@@ -32,6 +33,16 @@ export async function POST(request: NextRequest) {
       console.error('Profile upsert failed:', profileError)
       return NextResponse.json({ error: profileError.message }, { status: 500 })
     }
+
+    const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL}/login`
+    await sendEmail(
+      email,
+      "You've been invited to Ready Set Plans",
+      `<p>You've been invited to Ready Set Plans as a drafter.</p>
+<p><strong>Login URL:</strong> <a href="${loginUrl}">${loginUrl}</a></p>
+<p><strong>Temporary password:</strong> ${TEMP_PASSWORD}</p>
+<p>Please change your password after your first login.</p>`
+    )
 
     return NextResponse.json({ message: 'Drafter account created', tempPassword: TEMP_PASSWORD })
   } catch (error) {
