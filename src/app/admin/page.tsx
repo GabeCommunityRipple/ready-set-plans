@@ -138,7 +138,7 @@ export default function AdminPage() {
         {/* Quick Links */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               href="/admin/jobs"
               className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-center"
@@ -152,6 +152,13 @@ export default function AdminPage() {
             >
               <h3 className="font-semibold text-gray-900">Manage Drafters</h3>
               <p className="text-sm text-gray-600">Invite and monitor drafters</p>
+            </Link>
+            <Link
+              href="/admin/drafter-payments"
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-center"
+            >
+              <h3 className="font-semibold text-gray-900">Drafter Payments</h3>
+              <p className="text-sm text-gray-600">Track and pay drafter earnings</p>
             </Link>
             <Link
               href="/admin/promo-codes"
