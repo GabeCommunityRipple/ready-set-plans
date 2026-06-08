@@ -11,6 +11,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const [otpEmail, setOtpEmail] = useState('')
+  const [otpLoading, setOtpLoading] = useState(false)
+  const [otpError, setOtpError] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -38,6 +43,24 @@ export default function LoginPage() {
     } else {
       router.push('/portal')
     }
+  }
+
+  const handleSendLoginLink = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setOtpLoading(true)
+    setOtpError('')
+    setOtpSent(false)
+
+    const { error } = await supabase.auth.signInWithOtp({ email: otpEmail })
+
+    if (error) {
+      setOtpError(error.message)
+      setOtpLoading(false)
+      return
+    }
+
+    setOtpSent(true)
+    setOtpLoading(false)
   }
 
   return (
@@ -86,6 +109,46 @@ export default function LoginPage() {
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
+
+        <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
+          <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: 600, color: '#111' }}>
+            Need a new login link?
+          </h3>
+          <p style={{ margin: '0 0 1rem', fontSize: '0.8125rem', color: '#6b7280' }}>
+            Enter your email and we&apos;ll send a one-click link to get you back into your portal.
+          </p>
+          <form onSubmit={handleSendLoginLink} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div>
+              <label htmlFor="otp-email" style={{ display: 'block', marginBottom: 4, fontSize: '0.875rem', color: '#374151' }}>
+                Email
+              </label>
+              <input
+                id="otp-email"
+                type="email"
+                autoComplete="email"
+                required
+                value={otpEmail}
+                onChange={(e) => setOtpEmail(e.target.value)}
+                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.875rem', boxSizing: 'border-box' }}
+              />
+            </div>
+            {otpError && (
+              <p style={{ fontSize: '0.875rem', color: '#dc2626', margin: 0 }}>{otpError}</p>
+            )}
+            {otpSent && (
+              <p style={{ fontSize: '0.875rem', color: '#047857', margin: 0 }}>
+                Check your email for a login link.
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={otpLoading}
+              style={{ padding: '0.625rem', background: '#ffffff', color: '#4f46e5', border: '1px solid #4f46e5', borderRadius: 6, fontSize: '0.875rem', fontWeight: 600, cursor: otpLoading ? 'not-allowed' : 'pointer', opacity: otpLoading ? 0.6 : 1 }}
+            >
+              {otpLoading ? 'Sending...' : 'Send Login Link'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )
