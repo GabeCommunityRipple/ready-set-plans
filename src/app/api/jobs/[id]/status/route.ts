@@ -2,6 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email'
+import { pushJobToSheet, type PushToSheetResult } from '@/lib/dak-sheet'
 
 export async function PATCH(
   request: NextRequest,
@@ -87,7 +88,25 @@ export async function PATCH(
       `)
     }
 
-    return NextResponse.json({ success: true })
+    // DAK's own jobs get their final plans mirrored into the DAK sheet as soon
+    // as the drafter sends them to the customer.
+    let dakSheetPush: PushToSheetResult | null = null
+    const isDakJob = (customerEmail || '').toLowerCase().includes('dakconstruction.com')
+
+    if (jobStatus === 'delivered' && isDakJob) {
+      dakSheetPush = await pushJobToSheet(id)
+
+      if (!dakSheetPush.success) {
+        // The status is already saved and the customer already emailed, so a
+        // sheet failure is logged rather than failing the whole request.
+        console.error('Auto push to DAK sheet failed', {
+          jobId: id,
+          error: dakSheetPush.error,
+        })
+      }
+    }
+
+    return NextResponse.json({ success: true, dakSheetPush })
   } catch (error) {
     console.error('Error updating job status:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

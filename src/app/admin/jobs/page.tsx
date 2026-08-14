@@ -39,6 +39,8 @@ export default function AdminJobsPage() {
   const [drafterFilter, setDrafterFilter] = useState('')
   const [showArchived, setShowArchived] = useState(false)
   const [archiving, setArchiving] = useState<string | null>(null)
+  const [pushing, setPushing] = useState<string | null>(null)
+  const [pushResults, setPushResults] = useState<Record<string, { ok: boolean; message: string }>>({})
 
   useEffect(() => {
     fetchJobs()
@@ -83,6 +85,30 @@ export default function AdminJobsPage() {
       alert('Failed to archive job. Please try again.')
     } finally {
       setArchiving(null)
+    }
+  }
+
+  const handlePushToSheet = async (e: React.MouseEvent, jobId: string) => {
+    e.stopPropagation()
+    setPushing(jobId)
+    setPushResults(prev => {
+      const next = { ...prev }
+      delete next[jobId]
+      return next
+    })
+
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}/push-to-sheet`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to push to DAK Sheet')
+      setPushResults(prev => ({ ...prev, [jobId]: { ok: true, message: 'Pushed to DAK Sheet' } }))
+    } catch (err) {
+      setPushResults(prev => ({
+        ...prev,
+        [jobId]: { ok: false, message: err instanceof Error ? err.message : 'Failed to push to DAK Sheet' },
+      }))
+    } finally {
+      setPushing(null)
     }
   }
 
@@ -183,7 +209,7 @@ export default function AdminJobsPage() {
               <table style={{ minWidth: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: '#f9fafb' }}>
-                    {['Job', 'Customer', 'Plan Type', 'Drafter', 'Status', 'Amount', 'Date', ''].map(h => (
+                    {['Job', 'Customer', 'Plan Type', 'Drafter', 'Status', 'Amount', 'Date', 'Sheet', ''].map(h => (
                       <th key={h} style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb' }}>
                         {h}
                       </th>
@@ -227,6 +253,27 @@ export default function AdminJobsPage() {
                         <td style={cellStyle}>${(job.total_amount / 100).toFixed(2)}</td>
                         <td style={{ ...cellStyle, color: isArchived ? '#9ca3af' : '#6b7280' }}>
                           {new Date(job.created_at).toLocaleDateString()}
+                        </td>
+                        <td style={{ ...cellStyle }} onClick={(e) => e.stopPropagation()}>
+                          {(job.status === 'delivered' || job.status === 'approved') && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                              <button
+                                onClick={(e) => handlePushToSheet(e, job.id)}
+                                disabled={pushing === job.id}
+                                style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', background: pushing === job.id ? '#e5e7eb' : '#f3f4f6', color: '#6b7280', border: '1px solid #d1d5db', borderRadius: '0.375rem', cursor: pushing === job.id ? 'not-allowed' : 'pointer' }}
+                              >
+                                {pushing === job.id ? 'Pushing...' : 'Push'}
+                              </button>
+                              {pushResults[job.id] && (
+                                <span
+                                  title={pushResults[job.id].message}
+                                  style={{ fontSize: '0.875rem', fontWeight: '700', color: pushResults[job.id].ok ? '#16a34a' : '#dc2626' }}
+                                >
+                                  {pushResults[job.id].ok ? '✓' : '✕'}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </td>
                         <td style={{ ...cellStyle }} onClick={(e) => e.stopPropagation()}>
                           {!isArchived && (
