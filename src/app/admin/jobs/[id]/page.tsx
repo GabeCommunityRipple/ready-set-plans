@@ -49,6 +49,9 @@ export default function AdminJobDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [pushing, setPushing] = useState(false)
+  const [pushSuccess, setPushSuccess] = useState(false)
+  const [pushError, setPushError] = useState('')
 
   useEffect(() => {
     if (params.id) {
@@ -164,6 +167,30 @@ export default function AdminJobDetailsPage() {
       URL.revokeObjectURL(url)
     } catch (err) {
       alert('Failed to download file')
+    }
+  }
+
+  const pushToSheet = async () => {
+    setPushing(true)
+    setPushSuccess(false)
+    setPushError('')
+
+    try {
+      const response = await fetch(`/api/admin/jobs/${params.id}/push-to-sheet`, {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to push to DAK Sheet')
+      }
+
+      setPushSuccess(true)
+    } catch (err) {
+      setPushError(err instanceof Error ? err.message : 'Failed to push to DAK Sheet')
+    } finally {
+      setPushing(false)
     }
   }
 
@@ -323,6 +350,39 @@ export default function AdminJobDetailsPage() {
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+
+          {files.some((file) => file.file_type === 'final') && (
+            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+              <button
+                onClick={pushToSheet}
+                disabled={pushing}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: pushing ? '#9ca3af' : '#16a34a',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: pushing ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {pushing ? 'Pushing...' : 'Push to DAK Sheet'}
+              </button>
+
+              {pushSuccess && (
+                <p style={{ marginTop: '10px', color: '#16a34a', fontSize: '14px' }}>
+                  ✓ Pushed to DAK Sheet
+                </p>
+              )}
+
+              {pushError && (
+                <p style={{ marginTop: '10px', color: '#dc2626', fontSize: '14px' }}>
+                  {pushError}
+                </p>
+              )}
             </div>
           )}
         </div>
