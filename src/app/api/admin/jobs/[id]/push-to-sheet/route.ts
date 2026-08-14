@@ -4,8 +4,10 @@ import { google } from 'googleapis'
 import { NextRequest, NextResponse } from 'next/server'
 
 const SPREADSHEET_ID = '1INeeEKHBtEjg2lNcJZs5Uf0F6o-Jre2mwDvFSBnm0Ro'
-const SHEET_GID = 531107093
+const SHEET_NAME = '2026 Jobs'
 const TARGET_COLUMN = 'AK'
+const NAME_COLUMN_INDEX = 0 // column A
+const ADDRESS_COLUMN_INDEX = 2 // column C
 
 // Service account JSON may be stored raw or base64-encoded, and private keys
 // pasted into env files usually keep their newlines escaped.
@@ -68,7 +70,7 @@ export async function POST(
 
     const { data: job, error: jobError } = await supabaseAdmin
       .from('jobs')
-      .select('id, job_name')
+      .select('id, job_name, job_site_address')
       .eq('id', id)
       .single()
 
@@ -77,29 +79,36 @@ export async function POST(
     }
 
     const jobName = (job.job_name || '').trim()
-    if (!jobName) {
-      return NextResponse.json({ error: 'Job has no name to match against' }, { status: 400 })
+    const jobAddress = (job.job_site_address || '').trim()
+    if (!jobName && !jobAddress) {
+      return NextResponse.json(
+        { error: 'Job has no name or site address to match against' },
+        { status: 400 }
+      )
     }
 
-    const { data: files, error: filesError } = await supabaseAdmin
+    // Only the newest final file gets pushed.
+    const { data: latestFile, error: filesError } = await supabaseAdmin
       .from('job_files')
       .select('file_name, file_path, uploaded_at')
       .eq('job_id', id)
       .eq('file_type', 'final')
-      .order('uploaded_at', { ascending: true })
+      .order('uploaded_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
     if (filesError) {
       console.error('Push to sheet file lookup error:', filesError)
       return NextResponse.json({ error: 'Failed to load job files' }, { status: 500 })
     }
 
-    if (!files || files.length === 0) {
+    if (!latestFile) {
       return NextResponse.json({ error: 'No final files to push' }, { status: 400 })
     }
 
-    const fileUrls = files.map(
-      (file) => supabaseAdmin.storage.from('uploads').getPublicUrl(file.file_path).data.publicUrl
-    )
+    const fileUrl = supabaseAdmin.storage
+      .from('uploads')
+      .getPublicUrl(latestFile.file_path).data.publicUrl
 
     const credentials = loadServiceAccount()
     const auth = new google.auth.GoogleAuth({
@@ -108,36 +117,43 @@ export async function POST(
     })
     const sheets = google.sheets({ version: 'v4', auth })
 
-    // The values API addresses sheets by title, so resolve the gid first.
-    const { data: spreadsheet } = await sheets.spreadsheets.get({
-      spreadsheetId: SPREADSHEET_ID,
-      fields: 'sheets.properties(sheetId,title)',
-    })
+    const quotedTitle = quoteSheetTitle(SHEET_NAME)
 
-    const sheetTitle = spreadsheet.sheets?.find(
-      (sheet) => sheet.properties?.sheetId === SHEET_GID
-    )?.properties?.title
-
-    if (!sheetTitle) {
+    // A:C in one read covers both the name column (A) and the address column (C).
+    let rows: unknown[][]
+    try {
+      const { data: nameAndAddressColumns } = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${quotedTitle}!A:C`,
+      })
+      rows = nameAndAddressColumns.values || []
+    } catch (lookupError) {
+      console.error('Push to sheet range read error:', lookupError)
       return NextResponse.json(
-        { error: `Sheet with gid ${SHEET_GID} not found in DAK sheet` },
+        { error: `Could not read the "${SHEET_NAME}" tab in the DAK sheet` },
         { status: 404 }
       )
     }
 
-    const quotedTitle = quoteSheetTitle(sheetTitle)
+    // Rows come back truncated at the last populated cell, so a row matching on
+    // name may have no column C at all.
+    const findRow = (columnIndex: number, value: string) => {
+      if (!value) return -1
+      const needle = value.toLowerCase()
+      return rows.findIndex((row) => {
+        const cell = row?.[columnIndex]
+        return typeof cell === 'string' && cell.toLowerCase().includes(needle)
+      })
+    }
 
-    const { data: columnA } = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${quotedTitle}!A:A`,
-    })
+    // Name is the primary key; site address is the fallback.
+    let matchIndex = findRow(NAME_COLUMN_INDEX, jobName)
+    let matchedOn = 'job name'
 
-    const needle = jobName.toLowerCase()
-    const rows = columnA.values || []
-    const matchIndex = rows.findIndex((row) => {
-      const cell = row?.[0]
-      return typeof cell === 'string' && cell.toLowerCase().includes(needle)
-    })
+    if (matchIndex === -1) {
+      matchIndex = findRow(ADDRESS_COLUMN_INDEX, jobAddress)
+      matchedOn = 'job site address'
+    }
 
     if (matchIndex === -1) {
       return NextResponse.json(
@@ -148,19 +164,21 @@ export async function POST(
 
     const rowNumber = matchIndex + 1
 
+    // update() overwrites the cell, so any existing AK value is replaced.
     await sheets.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
       range: `${quotedTitle}!${TARGET_COLUMN}${rowNumber}`,
       valueInputOption: 'RAW',
       requestBody: {
-        values: [[fileUrls.join('\n')]],
+        values: [[fileUrl]],
       },
     })
 
     return NextResponse.json({
       success: true,
       row: rowNumber,
-      fileCount: fileUrls.length,
+      matchedOn,
+      fileName: latestFile.file_name,
     })
   } catch (error) {
     console.error('Push to sheet unexpected error:', error)
