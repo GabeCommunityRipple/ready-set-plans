@@ -3,7 +3,8 @@ import { verifyOrderOwnership } from '@/lib/portal-auth'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 
-// Analyzing a plan PDF takes well past the default serverless limit.
+// Vercel Pro's maximum. The Anthropic call uses a 240s SDK timeout so it aborts
+// with a logged error inside this budget rather than being killed mid-request.
 export const maxDuration = 300
 
 // DEBUG: verbose console.error tracing through every step of this route.

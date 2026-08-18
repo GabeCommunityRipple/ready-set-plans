@@ -4,6 +4,11 @@ import Anthropic from '@anthropic-ai/sdk'
 export const MAX_PDF_BYTES = 20 * 1024 * 1024
 
 const MODEL = 'claude-sonnet-4-6'
+const MAX_TOKENS = 4000
+// Per-request cap, in MILLISECONDS (the TypeScript SDK's unit). Sits inside the
+// route's 300s maxDuration so the SDK aborts and logs before Vercel kills the
+// function.
+const REQUEST_TIMEOUT_MS = 240_000
 
 const SYSTEM_PROMPT = `You are a materials estimator for a deck building company. Analyze this deck plan PDF and calculate a complete materials list using these exact specifications:
 
@@ -43,8 +48,8 @@ Return a clean, organized materials list with quantities. Format it clearly so a
  * Sends a deck plan PDF to Claude and returns the estimated materials list as
  * plain text.
  *
- * Streams the response: plan PDFs are large inputs and the estimate involves
- * board-length optimization, so a non-streaming call risks an HTTP timeout.
+ * Runs without extended thinking and with a bounded output so the call returns
+ * well inside the route's function budget.
  */
 export async function generateMaterialsList(pdfBase64: string): Promise<string> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -54,44 +59,44 @@ export async function generateMaterialsList(pdfBase64: string): Promise<string> 
   const startedAt = Date.now()
   console.error('[materials] STEP 7 calling Anthropic', {
     model: MODEL,
-    maxTokens: 16000,
-    thinking: 'adaptive',
+    maxTokens: MAX_TOKENS,
+    thinking: 'off',
+    timeoutMs: REQUEST_TIMEOUT_MS,
     base64Length: pdfBase64.length,
     approxRequestMB: ((pdfBase64.length / (1024 * 1024))).toFixed(2),
     apiKeyPresent: Boolean(process.env.ANTHROPIC_API_KEY),
   })
 
-  const stream = client.messages.stream({
-    model: MODEL,
-    max_tokens: 16000,
-    // Minimizing board waste is real arithmetic — let Claude reason it through.
-    thinking: { type: 'adaptive' },
-    system: SYSTEM_PROMPT,
-    messages: [
+  let message: Anthropic.Message
+  try {
+    message = await client.messages.create(
       {
-        role: 'user',
-        content: [
-          // The document block must precede the text block.
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
+        system: SYSTEM_PROMPT,
+        messages: [
           {
-            type: 'document',
-            source: {
-              type: 'base64',
-              media_type: 'application/pdf',
-              data: pdfBase64,
-            },
-          },
-          {
-            type: 'text',
-            text: 'Analyze the attached deck plan and produce the complete materials list.',
+            role: 'user',
+            content: [
+              // The document block must precede the text block.
+              {
+                type: 'document',
+                source: {
+                  type: 'base64',
+                  media_type: 'application/pdf',
+                  data: pdfBase64,
+                },
+              },
+              {
+                type: 'text',
+                text: 'Analyze the attached deck plan and produce the complete materials list.',
+              },
+            ],
           },
         ],
       },
-    ],
-  })
-
-  let message: Anthropic.Message
-  try {
-    message = await stream.finalMessage()
+      { timeout: REQUEST_TIMEOUT_MS }
+    )
   } catch (error) {
     // Anthropic SDK errors carry status/headers/error alongside the message.
     console.error('[materials] STEP 7 FAILED Anthropic request threw', {
