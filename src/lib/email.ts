@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendEmail(
-  to: string,
+  to: string | string[],
   subject: string,
   html: string
 ): Promise<{ success: boolean; error?: string }> {
@@ -12,7 +12,7 @@ export async function sendEmail(
   try {
     const result = await resend.emails.send({
       from: 'Ready Set Plans <info@readysetplans.com>',
-      to: [to],
+      to: Array.isArray(to) ? to : [to],
       subject,
       html,
     });

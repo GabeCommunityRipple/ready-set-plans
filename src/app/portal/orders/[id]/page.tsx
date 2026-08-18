@@ -61,6 +61,11 @@ export default function OrderDetailsPage() {
   const [additionalInfo, setAdditionalInfo] = useState('')
   const [submittingInfo, setSubmittingInfo] = useState(false)
   const [infoSubmitResult, setInfoSubmitResult] = useState<{ message: string; stillMissing?: string[] } | null>(null)
+  const [materials, setMaterials] = useState<string | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const [materialsError, setMaterialsError] = useState('')
+  const [sendingMaterials, setSendingMaterials] = useState(false)
+  const [materialsSent, setMaterialsSent] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -135,6 +140,53 @@ export default function OrderDetailsPage() {
     } finally {
       setApproving(false)
     }
+  }
+
+  const handleGenerateMaterials = async () => {
+    setGenerating(true)
+    setMaterialsError('')
+    setMaterialsSent(false)
+    try {
+      const res = await fetch(`/api/portal/orders/${params.id}/materials`, { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.error || 'Failed to generate materials list')
+      }
+      setMaterials(await res.text())
+    } catch (err) {
+      setMaterialsError(err instanceof Error ? err.message : 'Failed to generate materials list')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleSendMaterials = async () => {
+    if (!materials?.trim()) return
+
+    setSendingMaterials(true)
+    setMaterialsError('')
+    try {
+      const res = await fetch(`/api/portal/orders/${params.id}/materials/email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ materialsText: materials }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.error || 'Failed to send materials list')
+      }
+      setMaterialsSent(true)
+    } catch (err) {
+      setMaterialsError(err instanceof Error ? err.message : 'Failed to send materials list')
+    } finally {
+      setSendingMaterials(false)
+    }
+  }
+
+  const handleClearMaterials = () => {
+    setMaterials(null)
+    setMaterialsError('')
+    setMaterialsSent(false)
   }
 
   const downloadFile = async (filePath: string, fileName: string) => {
@@ -358,6 +410,64 @@ export default function OrderDetailsPage() {
                 {approving ? 'Approving...' : 'Approve Plans'}
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Materials List */}
+        {job.status === 'approved' && (
+          <div style={{ background: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', padding: '1.5rem', marginTop: '2rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: '0 0 1rem 0' }}>Materials List</h2>
+
+            {!materials && (
+              <>
+                <p style={{ color: '#4b5563', margin: '0 0 1rem 0', fontSize: '0.875rem' }}>
+                  Generate an estimated materials list from your approved plans.
+                </p>
+                <button
+                  onClick={handleGenerateMaterials}
+                  disabled={generating}
+                  style={{ padding: '0.75rem 1.5rem', background: generating ? '#9ca3af' : '#2563eb', color: '#fff', border: 'none', borderRadius: '0.5rem', fontSize: '1rem', fontWeight: 600, cursor: generating ? 'not-allowed' : 'pointer' }}
+                >
+                  {generating ? 'Analyzing plans...' : 'Generate Materials List'}
+                </button>
+              </>
+            )}
+
+            {materialsError && (
+              <p style={{ color: '#dc2626', fontSize: '0.875rem', marginTop: '0.75rem', marginBottom: 0 }}>
+                {materialsError}
+              </p>
+            )}
+
+            {materials !== null && (
+              <>
+                <textarea
+                  value={materials}
+                  onChange={(e) => { setMaterials(e.target.value); setMaterialsSent(false) }}
+                  rows={24}
+                  spellCheck={false}
+                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: "'Courier New', Courier, monospace", fontSize: '0.8125rem', lineHeight: 1.5, padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', resize: 'vertical', background: '#f9fafb', color: '#111827' }}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.75rem' }}>
+                  <button
+                    onClick={handleSendMaterials}
+                    disabled={sendingMaterials}
+                    style={{ padding: '0.625rem 1.25rem', background: sendingMaterials ? '#9ca3af' : '#2563eb', color: '#fff', border: 'none', borderRadius: '0.375rem', fontSize: '0.875rem', fontWeight: 600, cursor: sendingMaterials ? 'not-allowed' : 'pointer' }}
+                  >
+                    {sendingMaterials ? 'Sending...' : 'Send to DAK'}
+                  </button>
+                  <button
+                    onClick={handleClearMaterials}
+                    style={{ padding: '0.625rem 1.25rem', background: '#e5e7eb', color: '#374151', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Clear
+                  </button>
+                  {materialsSent && (
+                    <span style={{ color: '#16a34a', fontSize: '0.875rem', fontWeight: 600 }}>✓ Sent!</span>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
