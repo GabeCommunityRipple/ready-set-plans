@@ -4,7 +4,7 @@ import Anthropic from '@anthropic-ai/sdk'
 export const MAX_PDF_BYTES = 20 * 1024 * 1024
 
 const MODEL = 'claude-sonnet-4-6'
-const MAX_TOKENS = 4000
+const MAX_TOKENS = 8000
 // Per-request cap, in MILLISECONDS (the TypeScript SDK's unit). Sits inside the
 // route's 300s maxDuration so the SDK aborts and logs before Vercel kills the
 // function.
