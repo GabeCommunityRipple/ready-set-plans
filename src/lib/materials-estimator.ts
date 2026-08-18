@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk'
 // Base64 inflates payload by ~33%, and the Messages API caps a request at 32MB.
 export const MAX_PDF_BYTES = 20 * 1024 * 1024
 
+const MODEL = 'claude-sonnet-4-6'
+
 const SYSTEM_PROMPT = `You are a materials estimator for a deck building company. Analyze this deck plan PDF and calculate a complete materials list using these exact specifications:
 
 DECKING (5/4x6 Trex):
@@ -47,8 +49,20 @@ Return a clean, organized materials list with quantities. Format it clearly so a
 export async function generateMaterialsList(pdfBase64: string): Promise<string> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+  // DEBUG: verbose console.error tracing around the Anthropic call.
+  // Remove once the failure has been identified.
+  const startedAt = Date.now()
+  console.error('[materials] STEP 7 calling Anthropic', {
+    model: MODEL,
+    maxTokens: 16000,
+    thinking: 'adaptive',
+    base64Length: pdfBase64.length,
+    approxRequestMB: ((pdfBase64.length / (1024 * 1024))).toFixed(2),
+    apiKeyPresent: Boolean(process.env.ANTHROPIC_API_KEY),
+  })
+
   const stream = client.messages.stream({
-    model: 'claude-sonnet-4-6',
+    model: MODEL,
     max_tokens: 16000,
     // Minimizing board waste is real arithmetic — let Claude reason it through.
     thinking: { type: 'adaptive' },
@@ -75,7 +89,35 @@ export async function generateMaterialsList(pdfBase64: string): Promise<string> 
     ],
   })
 
-  const message = await stream.finalMessage()
+  let message: Anthropic.Message
+  try {
+    message = await stream.finalMessage()
+  } catch (error) {
+    // Anthropic SDK errors carry status/headers/error alongside the message.
+    console.error('[materials] STEP 7 FAILED Anthropic request threw', {
+      model: MODEL,
+      elapsedMs: Date.now() - startedAt,
+      name: error instanceof Error ? error.name : undefined,
+      message: error instanceof Error ? error.message : undefined,
+      status: (error as { status?: number })?.status,
+      requestId: (error as { request_id?: string })?.request_id,
+      errorBody: (error as { error?: unknown })?.error,
+      stack: error instanceof Error ? error.stack : undefined,
+      rawError: error,
+    })
+    throw error
+  }
+
+  console.error('[materials] STEP 7 Anthropic response received', {
+    id: message.id,
+    model: message.model,
+    stop_reason: message.stop_reason,
+    stop_sequence: message.stop_sequence,
+    contentBlockCount: message.content.length,
+    contentBlockTypes: message.content.map((block) => block.type),
+    usage: message.usage,
+    elapsedMs: Date.now() - startedAt,
+  })
 
   // Thinking blocks come back alongside the answer; keep only the text.
   const materialsText = message.content
@@ -84,11 +126,25 @@ export async function generateMaterialsList(pdfBase64: string): Promise<string> 
     .join('\n')
     .trim()
 
+  console.error('[materials] STEP 7 extracted text', {
+    textBlockCount: message.content.filter((block) => block.type === 'text').length,
+    textLength: materialsText.length,
+    preview: materialsText.slice(0, 300),
+  })
+
   if (!materialsText) {
+    console.error('[materials] STEP 7 FAILED no text in response', {
+      contentBlockTypes: message.content.map((block) => block.type),
+      fullContent: message.content,
+    })
     throw new Error('Claude returned an empty materials list')
   }
 
   if (message.stop_reason === 'max_tokens') {
+    console.error('[materials] STEP 7 FAILED hit max_tokens', {
+      usage: message.usage,
+      textLength: materialsText.length,
+    })
     throw new Error('The materials list was cut off before it finished. Please try again.')
   }
 
