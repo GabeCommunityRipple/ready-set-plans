@@ -199,18 +199,18 @@ export default function AdminJobsPage() {
         </div>
 
         {/* Jobs Table */}
-        <div style={{ background: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div style={{ background: '#fff', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', overflow: 'hidden', maxWidth: '100%' }}>
           {filteredJobs.length === 0 ? (
             <div style={{ padding: '1.5rem', textAlign: 'center', color: '#4b5563' }}>
               No jobs found matching the current filters.
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ minWidth: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', minWidth: '68rem', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: '#f9fafb' }}>
-                    {['Job', 'Customer', 'Plan Type', 'Drafter', 'Status', 'Amount', 'Date', 'Sheet', ''].map(h => (
-                      <th key={h} style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb' }}>
+                    {['Job', 'Customer', 'Plan Type', 'Drafter', 'Status', 'Amount', 'Date', 'Sheet', ''].map((h, i, all) => (
+                      <th key={h} style={{ padding: i >= all.length - 2 ? '0.75rem 0.75rem' : '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' }}>
                         {h}
                       </th>
                     ))}
@@ -230,6 +230,13 @@ export default function AdminJobsPage() {
                       whiteSpace: 'nowrap',
                       fontSize: '0.875rem',
                       color: isArchived ? '#6b7280' : '#111827',
+                    }
+                    // The action columns carry buttons, not text — tighter padding
+                    // keeps both of them on screen at common widths.
+                    const actionCellStyle: React.CSSProperties = {
+                      ...cellStyle,
+                      padding: '0.5rem 0.75rem',
+                      width: '1%',
                     }
                     const badge = statusColors[job.status] ?? { background: '#f3f4f6', color: '#1f2937' }
 
@@ -254,7 +261,7 @@ export default function AdminJobsPage() {
                         <td style={{ ...cellStyle, color: isArchived ? '#9ca3af' : '#6b7280' }}>
                           {new Date(job.created_at).toLocaleDateString()}
                         </td>
-                        <td style={{ ...cellStyle }} onClick={(e) => e.stopPropagation()}>
+                        <td style={actionCellStyle} onClick={(e) => e.stopPropagation()}>
                           {(job.status === 'delivered' || job.status === 'approved') && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                               <button
@@ -275,7 +282,7 @@ export default function AdminJobsPage() {
                             </div>
                           )}
                         </td>
-                        <td style={{ ...cellStyle }} onClick={(e) => e.stopPropagation()}>
+                        <td style={actionCellStyle} onClick={(e) => e.stopPropagation()}>
                           {!isArchived && (
                             <button
                               onClick={(e) => handleArchive(e, job.id)}

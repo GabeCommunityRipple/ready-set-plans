@@ -251,7 +251,7 @@ export default function AdminJobDetailsPage() {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.25rem' }}>
-                DAK Job Number
+                Job Number
               </label>
               <input
                 type="text"

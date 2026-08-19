@@ -173,7 +173,7 @@ export async function pushJobToSheet(jobId: string): Promise<PushToSheetResult> 
     // Job number is the most reliable key, so it is tried first. It is matched
     // exactly — a substring match would let DAK-2026-4 hit DAK-2026-42.
     let matchIndex = findRow(jobNumberColumnIndex, jobNumber, true)
-    let matchedOn = 'DAK job number'
+    let matchedOn = 'job number'
 
     // Older jobs predate the job number field, so name matching stays as the
     // fallback, with site address behind it.
