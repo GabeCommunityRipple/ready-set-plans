@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       const insertPayload = {
         customer_email: metadata.email,
         business_name: metadata.businessName,
+        dak_job_number: metadata.dakJobNumber || null,
         job_name: metadata.jobName,
         job_site_address: metadata.jobSiteAddress,
         plan_type: metadata.planType,

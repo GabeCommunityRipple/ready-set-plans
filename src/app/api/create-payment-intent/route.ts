@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     const {
       email,
       businessName,
+      dakJobNumber,
       jobName,
       jobSiteAddress,
       planType,
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
     const metadata = {
       email,
       businessName: businessName ? businessName.substring(0, 490) : '',
+      dakJobNumber: dakJobNumber ? dakJobNumber.substring(0, 490) : '',
       jobName: jobName ? jobName.substring(0, 490) : '',
       jobSiteAddress: jobSiteAddress ? jobSiteAddress.substring(0, 490) : '',
       planType,

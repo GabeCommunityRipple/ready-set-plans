@@ -9,6 +9,7 @@ interface Job {
   id: string
   job_name: string
   business_name: string
+  dak_job_number: string | null
   job_site_address: string
   plan_type: string
   description: string
@@ -247,6 +248,23 @@ export default function AdminJobDetailsPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={saving}
               />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.25rem' }}>
+                DAK Job Number
+              </label>
+              <input
+                type="text"
+                value={job.dak_job_number || ''}
+                onChange={(e) => setJob({ ...job, dak_job_number: e.target.value })}
+                onBlur={(e) => updateJob({ dak_job_number: e.target.value.trim() || null })}
+                placeholder="e.g. DAK-2026-042"
+                disabled={saving}
+                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem', boxSizing: 'border-box', background: saving ? '#f3f4f6' : '#fff', color: '#111827' }}
+              />
+              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem', marginBottom: 0 }}>
+                Used to match this job to its row in the DAK sheet.
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>

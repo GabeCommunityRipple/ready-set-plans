@@ -12,6 +12,7 @@ export default function OrderPage() {
   const [formData, setFormData] = useState({
     email: '',
     businessName: '',
+    dakJobNumber: '',
     jobName: '',
     jobSiteAddress: '',
     planType: 'deck',
@@ -121,6 +122,10 @@ export default function OrderPage() {
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>Business Name *</label>
               <input type="text" name="businessName" required value={formData.businessName} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', fontSize: '1rem', boxSizing: 'border-box' }} placeholder="Your Company Name" />
+            </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>DAK Job Number</label>
+              <input type="text" name="dakJobNumber" value={formData.dakJobNumber} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', fontSize: '1rem', boxSizing: 'border-box' }} placeholder="e.g. DAK-2026-042" />
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>Job Name *</label>
