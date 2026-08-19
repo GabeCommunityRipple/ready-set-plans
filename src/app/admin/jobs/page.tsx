@@ -39,6 +39,7 @@ export default function AdminJobsPage() {
   const [drafterFilter, setDrafterFilter] = useState('')
   const [showArchived, setShowArchived] = useState(false)
   const [archiving, setArchiving] = useState<string | null>(null)
+  const [unarchiving, setUnarchiving] = useState<string | null>(null)
   const [pushing, setPushing] = useState<string | null>(null)
   const [pushResults, setPushResults] = useState<Record<string, { ok: boolean; message: string }>>({})
 
@@ -85,6 +86,21 @@ export default function AdminJobsPage() {
       alert('Failed to archive job. Please try again.')
     } finally {
       setArchiving(null)
+    }
+  }
+
+  const handleUnarchive = async (e: React.MouseEvent, jobId: string) => {
+    e.stopPropagation()
+    setUnarchiving(jobId)
+    try {
+      const res = await fetch(`/api/admin/jobs/${jobId}/unarchive`, { method: 'PATCH' })
+      if (!res.ok) throw new Error('Failed to unarchive job')
+      // The archived view lists only archived jobs, so this row no longer belongs.
+      setJobs(prev => prev.filter(j => j.id !== jobId))
+    } catch {
+      alert('Failed to unarchive job. Please try again.')
+    } finally {
+      setUnarchiving(null)
     }
   }
 
@@ -293,7 +309,13 @@ export default function AdminJobsPage() {
                             </button>
                           )}
                           {isArchived && (
-                            <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Archived</span>
+                            <button
+                              onClick={(e) => handleUnarchive(e, job.id)}
+                              disabled={unarchiving === job.id}
+                              style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', background: unarchiving === job.id ? '#e5e7eb' : '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '0.375rem', cursor: unarchiving === job.id ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
+                            >
+                              {unarchiving === job.id ? 'Unarchiving...' : 'Unarchive'}
+                            </button>
                           )}
                         </td>
                       </tr>
