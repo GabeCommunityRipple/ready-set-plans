@@ -30,6 +30,24 @@ const statusColors: Record<string, { background: string; color: string }> = {
   approved:           { background: '#dcfce7', color: '#166534' },
 }
 
+// tableLayout: 'fixed' sizes every column from the first row, which stops the
+// browser re-measuring content after data loads and collapsing the action
+// columns. That also means every column needs a width — an unsized one would
+// just split whatever is left over.
+const COLUMNS: { label: string; width: number; action?: boolean }[] = [
+  { label: 'Job', width: 200 },
+  { label: 'Customer', width: 210 },
+  { label: 'Plan Type', width: 105 },
+  { label: 'Drafter', width: 190 },
+  { label: 'Status', width: 145 },
+  { label: 'Amount', width: 95 },
+  { label: 'Date', width: 105 },
+  { label: 'Sheet', width: 90, action: true },
+  { label: '', width: 90, action: true },
+]
+
+const TABLE_MIN_WIDTH = COLUMNS.reduce((sum, column) => sum + column.width, 0)
+
 export default function AdminJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [drafters, setDrafters] = useState<Drafter[]>([])
@@ -221,13 +239,28 @@ export default function AdminJobsPage() {
               No jobs found matching the current filters.
             </div>
           ) : (
-            <div style={{ overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
-              <table style={{ width: '100%', minWidth: '68rem', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto', width: '100%', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', minWidth: `${TABLE_MIN_WIDTH}px`, tableLayout: 'fixed', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: '#f9fafb' }}>
-                    {['Job', 'Customer', 'Plan Type', 'Drafter', 'Status', 'Amount', 'Date', 'Sheet', ''].map((h, i, all) => (
-                      <th key={h} style={{ padding: i >= all.length - 2 ? '0.75rem 0.75rem' : '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' }}>
-                        {h}
+                    {COLUMNS.map((column) => (
+                      <th
+                        key={column.label}
+                        style={{
+                          width: `${column.width}px`,
+                          minWidth: `${column.width}px`,
+                          padding: column.action ? '0.75rem 0.75rem' : '0.75rem 1.5rem',
+                          textAlign: 'left',
+                          fontSize: '0.75rem',
+                          fontWeight: '500',
+                          color: '#6b7280',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          borderBottom: '1px solid #e5e7eb',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {column.label}
                       </th>
                     ))}
                   </tr>
@@ -244,6 +277,10 @@ export default function AdminJobsPage() {
                     const cellStyle: React.CSSProperties = {
                       padding: '1rem 1.5rem',
                       whiteSpace: 'nowrap',
+                      // Fixed layout clips rather than widens, so long values
+                      // (customer emails especially) need to truncate cleanly.
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
                       fontSize: '0.875rem',
                       color: isArchived ? '#6b7280' : '#111827',
                     }
@@ -252,7 +289,11 @@ export default function AdminJobsPage() {
                     const actionCellStyle: React.CSSProperties = {
                       ...cellStyle,
                       padding: '0.5rem 0.75rem',
-                      width: '1%',
+                      width: '90px',
+                      minWidth: '80px',
+                      // These hold buttons, not text — clipping would hide them.
+                      overflow: 'visible',
+                      textOverflow: 'clip',
                     }
                     const badge = statusColors[job.status] ?? { background: '#f3f4f6', color: '#1f2937' }
 
