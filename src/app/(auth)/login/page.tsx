@@ -71,9 +71,53 @@ export default function LoginPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}>
       <div style={{ width: '100%', maxWidth: 400, padding: '2rem', background: '#fff', borderRadius: 8, boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}>
-        <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 700, textAlign: 'center', color: '#111' }}>
-          Sign in to Ready Set Plans
+        <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.5rem', fontWeight: 700, textAlign: 'center', color: '#111' }}>
+          Access Your Portal
         </h2>
+        <p style={{ margin: '0 0 1.5rem', fontSize: '0.9375rem', lineHeight: 1.5, textAlign: 'center', color: '#4b5563' }}>
+          Enter your email and we&apos;ll send you an instant login link — no password needed.
+        </p>
+        <form onSubmit={handleSendLoginLink} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div>
+            <label htmlFor="otp-email" style={{ display: 'block', marginBottom: 4, fontSize: '0.875rem', color: '#374151' }}>
+              Email
+            </label>
+            <input
+              id="otp-email"
+              type="email"
+              autoComplete="email"
+              required
+              value={otpEmail}
+              onChange={(e) => setOtpEmail(e.target.value)}
+              style={{ width: '100%', padding: '0.625rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.9375rem', boxSizing: 'border-box' }}
+            />
+          </div>
+          {otpError && (
+            <p style={{ fontSize: '0.875rem', color: '#dc2626', margin: 0 }}>{otpError}</p>
+          )}
+          {otpSent && (
+            <p style={{ fontSize: '0.875rem', color: '#047857', margin: 0 }}>
+              Check your email for a login link.
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={otpLoading}
+            style={{ padding: '0.75rem 1.5rem', background: '#1B7FE8', color: '#ffffff', border: 'none', borderRadius: '0.5rem', fontSize: '1rem', fontWeight: 700, letterSpacing: '0.01em', boxShadow: '0 2px 8px rgba(27,127,232,0.3)', cursor: otpLoading ? 'not-allowed' : 'pointer', opacity: otpLoading ? 0.6 : 1 }}
+          >
+            {otpLoading ? 'Sending...' : 'Send Login Link'}
+          </button>
+        </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '2rem 0 0.25rem' }}>
+          <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
+          <span style={{ fontSize: '0.8125rem', color: '#6b7280', whiteSpace: 'nowrap' }}>Or sign in with password</span>
+          <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
+        </div>
+        <p style={{ margin: '0 0 1rem', fontSize: '0.75rem', textAlign: 'center', color: '#9ca3af' }}>
+          For drafters and admins
+        </p>
+
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
             <label htmlFor="email" style={{ display: 'block', marginBottom: 4, fontSize: '0.875rem', color: '#374151' }}>
@@ -109,51 +153,11 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            style={{ padding: '0.625rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 6, fontSize: '0.875rem', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
+            style={{ padding: '0.625rem', background: '#ffffff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.875rem', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
-
-        <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
-          <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: 600, color: '#111' }}>
-            Need a new login link?
-          </h3>
-          <p style={{ margin: '0 0 1rem', fontSize: '0.8125rem', color: '#6b7280' }}>
-            Enter your email and we&apos;ll send a one-click link to get you back into your portal.
-          </p>
-          <form onSubmit={handleSendLoginLink} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div>
-              <label htmlFor="otp-email" style={{ display: 'block', marginBottom: 4, fontSize: '0.875rem', color: '#374151' }}>
-                Email
-              </label>
-              <input
-                id="otp-email"
-                type="email"
-                autoComplete="email"
-                required
-                value={otpEmail}
-                onChange={(e) => setOtpEmail(e.target.value)}
-                style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.875rem', boxSizing: 'border-box' }}
-              />
-            </div>
-            {otpError && (
-              <p style={{ fontSize: '0.875rem', color: '#dc2626', margin: 0 }}>{otpError}</p>
-            )}
-            {otpSent && (
-              <p style={{ fontSize: '0.875rem', color: '#047857', margin: 0 }}>
-                Check your email for a login link.
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={otpLoading}
-              style={{ padding: '0.625rem', background: '#ffffff', color: '#4f46e5', border: '1px solid #4f46e5', borderRadius: 6, fontSize: '0.875rem', fontWeight: 600, cursor: otpLoading ? 'not-allowed' : 'pointer', opacity: otpLoading ? 0.6 : 1 }}
-            >
-              {otpLoading ? 'Sending...' : 'Send Login Link'}
-            </button>
-          </form>
-        </div>
       </div>
     </div>
   )
