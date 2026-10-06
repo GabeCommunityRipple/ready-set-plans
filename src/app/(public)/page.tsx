@@ -20,20 +20,34 @@ export default function HomePage() {
         boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
       }}>
         <Image src="/logo.png" alt="Ready Set Plans" height={52} width={160} style={{ objectFit: 'contain' }} priority />
-        <Link href="/order" style={{
-          backgroundColor: '#1B7FE8',
-          color: '#ffffff',
-          fontWeight: '700',
-          fontSize: '0.9375rem',
-          padding: '0.6rem 1.5rem',
-          borderRadius: '0.5rem',
-          textDecoration: 'none',
-          letterSpacing: '0.01em',
-          boxShadow: '0 2px 8px rgba(27,127,232,0.3)',
-          transition: 'background 0.15s',
-        }}>
-          Order Now →
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <Link href="/login" style={{
+            backgroundColor: '#ffffff',
+            color: '#1B7FE8',
+            fontWeight: '600',
+            fontSize: '0.9375rem',
+            padding: '0.5rem 1.25rem',
+            borderRadius: '0.5rem',
+            border: '1.5px solid #1B7FE8',
+            textDecoration: 'none',
+          }}>
+            View My Order
+          </Link>
+          <Link href="/order" style={{
+            backgroundColor: '#1B7FE8',
+            color: '#ffffff',
+            fontWeight: '700',
+            fontSize: '0.9375rem',
+            padding: '0.6rem 1.5rem',
+            borderRadius: '0.5rem',
+            textDecoration: 'none',
+            letterSpacing: '0.01em',
+            boxShadow: '0 2px 8px rgba(27,127,232,0.3)',
+            transition: 'background 0.15s',
+          }}>
+            Order Now →
+          </Link>
+        </div>
       </nav>
 
       {/* ── Hero ── */}

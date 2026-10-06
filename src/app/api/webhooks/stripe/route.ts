@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Send branded magic link email
-        await sendEmail(metadata.email, 'Your Order Has Been Received - Ready Set Plans', `
+        await sendEmail(metadata.email, 'Your Ready Set Plans Portal Access — Click Here to View Your Order', `
           <!DOCTYPE html>
           <html>
           <body style="margin:0;padding:0;background:#f4f4f5;font-family:sans-serif;">
@@ -174,6 +174,9 @@ export async function POST(request: NextRequest) {
                   </tr>
                   <tr>
                     <td style="padding:40px;">
+                      <p style="margin:0 0 24px;padding:14px 16px;background:#fef3c7;border-left:4px solid #f59e0b;border-radius:4px;color:#78350f;font-size:14px;line-height:1.6;">
+                        <strong>Check your spam folder if you don't see this email.</strong> To request a new login link at any time, visit <a href="https://readysetplans.com/login" style="color:#78350f;font-weight:600;">readysetplans.com/login</a>
+                      </p>
                       <h2 style="margin:0 0 16px;color:#1a1a2e;font-size:22px;">Your order has been received!</h2>
                       <p style="margin:0 0 8px;color:#444;font-size:15px;line-height:1.6;">
                         <strong>Job:</strong> ${metadata.jobName}

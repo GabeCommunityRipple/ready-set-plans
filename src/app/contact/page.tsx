@@ -71,6 +71,18 @@ export default function ContactPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <Link href="/about" style={{ color: '#475569', textDecoration: 'none', fontWeight: '500', fontSize: '0.95rem' }}>About</Link>
           <Link href="/contact" style={{ color: '#1B7FE8', textDecoration: 'none', fontWeight: '600', fontSize: '0.95rem' }}>Contact</Link>
+          <Link href="/login" style={{
+            backgroundColor: '#ffffff',
+            color: '#1B7FE8',
+            fontWeight: '600',
+            fontSize: '1rem',
+            padding: '0.5rem 1.25rem',
+            borderRadius: '0.5rem',
+            border: '1.5px solid #1B7FE8',
+            textDecoration: 'none',
+          }}>
+            View My Order
+          </Link>
           <Link href="/order" style={{
             backgroundColor: '#1B7FE8',
             color: '#ffffff',
