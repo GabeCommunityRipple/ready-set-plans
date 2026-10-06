@@ -1,11 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
+  const [checkingSession, setCheckingSession] = useState(true)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace('/portal')
+      } else {
+        setCheckingSession(false)
+      }
+    })
+  }, [router])
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -73,6 +85,8 @@ export default function LoginPage() {
     setOtpSent(true)
     setOtpLoading(false)
   }
+
+  if (checkingSession) return null
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}>

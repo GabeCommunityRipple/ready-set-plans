@@ -29,6 +29,22 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  if (pathname === '/login' && user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+
+    const role = profile?.role || 'customer'
+    const url = request.nextUrl.clone()
+    url.pathname = role === 'admin' ? '/admin' : role === 'drafter' ? '/drafter' : '/portal'
+    url.search = ''
+    const redirectResponse = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie))
+    return redirectResponse
+  }
+
   const isPublicRoute =
     pathname === '/' ||
     pathname === '/login' ||
