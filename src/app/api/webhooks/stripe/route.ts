@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
       if (authError) {
         console.error('[stripe-webhook] Error generating magic link:', authError)
       } else {
-        const magicLinkUrl = linkData.properties.action_link
+        const magicLinkUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?token_hash=${linkData.properties.hashed_token}&type=magiclink`
         console.log('[stripe-webhook] Magic link generated successfully')
 
         // Upsert customer profile so auth callback always routes to /portal

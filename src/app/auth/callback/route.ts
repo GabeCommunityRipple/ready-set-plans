@@ -6,7 +6,6 @@ const isExpiredError = (message: string) =>
   /expired|otp_expired/i.test(message)
 
 export async function GET(request: NextRequest) {
-  console.log('[auth-callback] Request URL:', request.url)
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const tokenHash = searchParams.get('token_hash')

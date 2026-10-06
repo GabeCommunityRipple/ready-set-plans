@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Could not send login link. Please try again.' }, { status: 500 })
     }
 
-    const magicLinkUrl = linkData.properties.action_link
+    const magicLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?token_hash=${linkData.properties.hashed_token}&type=magiclink`
 
     const result = await sendEmail(normalizedEmail, 'Your Ready Set Plans Login Link', `
       <!DOCTYPE html>
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
                   <table cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="background:#2563eb;border-radius:6px;">
-                        <a href="${magicLinkUrl}" style="display:inline-block;padding:16px 40px;color:#ffffff;font-size:17px;font-weight:700;text-decoration:none;">
+                        <a href="${magicLink}" style="display:inline-block;padding:16px 40px;color:#ffffff;font-size:17px;font-weight:700;text-decoration:none;">
                           Access My Portal &rarr;
                         </a>
                       </td>
