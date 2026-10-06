@@ -51,15 +51,21 @@ export default function LoginPage() {
     setOtpError('')
     setOtpSent(false)
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email: otpEmail,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
+    try {
+      const res = await fetch('/api/auth/send-magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: otpEmail }),
+      })
 
-    if (error) {
-      setOtpError(error.message)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setOtpError(data.error || 'Could not send login link. Please try again.')
+        setOtpLoading(false)
+        return
+      }
+    } catch {
+      setOtpError('Could not send login link. Please try again.')
       setOtpLoading(false)
       return
     }
