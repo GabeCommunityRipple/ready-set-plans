@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Could not send login link. Please try again.' }, { status: 500 })
     }
 
-    const magicLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?token_hash=${linkData.properties.hashed_token}&type=magiclink`
+    const magicLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=magiclink`
 
     const result = await sendEmail(normalizedEmail, 'Your Ready Set Plans Login Link', `
       <!DOCTYPE html>
